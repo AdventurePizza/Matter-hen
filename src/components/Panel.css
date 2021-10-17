@@ -1,0 +1,366 @@
+.panel-avatar {
+	width: 42px;
+	height: auto;
+}
+.panel-back-arrow {
+	width: 18px;
+	height: 18px;
+}
+
+.sound-container button {
+	cursor: pointer;
+}
+.panel-you-text {
+	font-size: 18px;
+}
+
+.panel-drawer .MuiPaper-root {
+	border-right: none;
+}
+
+.panel-container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	background-color: var(--background);
+	min-height: 100%;
+	overflow-y: auto;
+}
+
+.panel-container * {
+	font-family: 'Blinker', sans-serif;
+	color: white;
+}
+
+.panel-icon-container {
+	/* width: 100%; */
+	width: 85px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	/* height: 50px; */
+}
+
+.bottom-panel-container {
+	display: flex;
+	/* padding: 10px 0; */
+	justify-content: left;
+	width: '100%';
+	overflow-y: hidden;
+}
+
+.bottom-panel-container > *:not(:last-child) {
+	margin-right: 5px;
+}
+
+.bottom-panel-emoji {
+	font-size: 3em;
+}
+
+.emoji-list,
+.emoji-settings-container {
+	display: flex;
+	justify-content: center;
+	align-content: center;
+}
+
+.emoji-speed-slider {
+	margin: 2.5rem 3rem 0.5rem 3rem;
+}
+
+.bottom-panel-sound img {
+	width: 40px;
+	height: auto;
+	margin: 0 20px;
+}
+
+.sound-container {
+	width: 100%;
+	padding: 10px;
+}
+
+.background-container {
+	width: 100%;
+}
+
+.inputSearch {
+	color:aqua;
+	border: '2px dashed red';
+}
+
+.sound-icon img {
+	width: 51px;
+	height: auto;
+	margin: 0 3px;
+	display: flex;
+}
+
+.sound-icon button {
+	background-color: white;
+	border: rgb(0, 0, 0) 0px;
+	height: auto;
+	width: auto;
+	margin-right: 2px;
+}
+
+.sound-icon p {
+	margin: 0;
+	padding: 0;
+	text-transform: capitalize;
+	font-family: 'Blinker';
+	font-size: 20px;
+	font-weight: 600;
+	margin-left: 20px;
+	margin-right: 20px;
+	margin-top: 9px;
+	margin-bottom: 20px;
+}
+
+.display-hover-icon {
+	text-align: center;
+	background-color: #87d3f3;
+	border-radius: 20px;
+	padding: 3px 10px;
+	margin-left: 20px;
+	margin-right: 20px;
+}
+
+.display-hover-icon span {
+	text-transform: capitalize;
+	font-family: 'Blinker';
+	font-size: 19px;
+	font-weight: 600;
+}
+
+.display-hover-icon {
+	border-radius: 20%;
+}
+
+.hover-icon-container {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+}
+
+.category button {
+	font-family: 'Blinker';
+	border-radius: 20px;
+	font-size: 18px;
+	line-height: 21px;
+	text-align: center;
+	border: none;
+	margin-bottom: 7px;
+	margin-left: 18px;
+	margin-right: 18px;
+	padding: 4px 18px;
+}
+
+#sound-active-category {
+	background: var(--primary);
+	font-weight: 1000;
+	color: #000000;
+}
+
+#sound-unactive-category {
+	background: var(--background);
+	color: #ffffff;
+}
+
+.sound-icon-list {
+	display: flex;
+	justify-content: center;
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+
+.animation-container {
+	width: 100vw;
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+.animation-icon-list {
+	display: flex;
+	justify-content: center;
+}
+
+.animation-icon img {
+	width: 51px;
+	height: auto;
+	margin: 3px 3px;
+	display: flex;
+}
+
+.animation-icon button {
+	background-color: white;
+	border: rgb(0, 0, 0) 0px;
+	height: auto;
+	width: auto;
+	margin-right: 2px;
+}
+
+.background-search-settings {
+	display: flex;
+	justify-content: center;
+	width:100%;
+}
+
+.background-icon-list {
+	display: flex;
+	overflow-x: auto;
+	display: 'flex'; 
+}
+
+.sound-category-list {
+	display: flex;
+	justify-content: center;
+}
+
+.bottom-panel-emoji .MuiIconButton-root {
+	color: rgba(0, 0, 0, 1);
+}
+
+.panel-icon-sound {
+	width: 20px;
+	height: 28px;
+}
+
+.panel-icon-emoji {
+	width: 33px;
+	height: 33px;
+}
+
+.panel-icon-poem {
+	width: 33px;
+	height: 33px;
+}
+
+.panel-icon-gifs {
+	width: 30px;
+	height: 13px;
+}
+.panel-icon-chat {
+	width: 26px;
+	height: 26px;
+}
+.panel-icon-background {
+	width: 30px;
+	height: 30px;
+}
+.panel-icon-tower {
+	width: 18px;
+	height: 35px;
+}
+
+.panel-icon-animation {
+	width: 26px;
+	height: 26px;
+}
+
+.panel-icon-whiteboard {
+	width: 33px;
+	height: 33px;
+}
+
+.panel-icon-maps {
+	width: 33px;
+	height: 33px;
+}
+
+.panel-icon-image-container {
+	height: 60px;
+	display: flex;
+	align-items: center;
+}
+
+.panel-you-container {
+	display: flex;
+}
+
+.panel-icon-roomDirectory {
+	width: 26px;
+	height: 26px;
+}
+
+.room-icon-list {
+	display: flex;
+	overflow: auto;
+	white-space: nowrap;
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+.room-icon-list::before,
+.room-icon-list::after {
+	content: '';
+	flex: 1;
+}
+
+.room-icon {
+	margin-left: 10px;
+	margin-right: 10px;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	background: transparent;
+}
+
+.room-icon p {
+	text-transform: capitalize;
+	font-family: 'Blinker';
+	font-size: 20px;
+	margin-left: 20px;
+	margin-right: 20px;
+	margin-top: 9px;
+	margin-bottom: 20px;
+	font-weight: 600;
+}
+
+.room-container {
+	width: 100vw;
+	padding-left: 10px;
+	padding-right: 10px;
+	overflow: hidden;
+	/* display: flex;
+	overflow: auto;
+	white-space: nowrap; */
+}
+
+#room-active-category {
+	background: #89dcff;
+	font-weight: 1000;
+	color: #000000;
+}
+
+@media only screen and (max-width: 500px) {
+	.bottom-panel-emoji {
+		font-size: 2em;
+	}
+}
+
+.youtube-container {
+	display: block;
+	text-align: center;
+}
+
+.youtube-container .youtube-list {
+	list-style-type: none;
+	padding: 0;
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+.youtube-container li {
+	display: inline-block;
+	margin-inline: 10px;
+	margin-top: 2px;
+	margin-bottom: 6px;
+	padding: 0;
+	cursor: pointer;
+}
+
+.youtube-container .button-wrapper {
+	display: inline-block;
+}
+
+.button-disabled{
+	opacity: 0.5;
+}

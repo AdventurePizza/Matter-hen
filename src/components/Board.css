@@ -1,0 +1,256 @@
+.app-btn{
+	color:aqua;
+}
+
+.board-container {
+	overflow: hidden;
+	width: 1920px;
+	height: 1080px;
+}
+
+.board-container-pin {
+	position: absolute;
+	right: 10px;
+	top: 10px;
+	background: white;
+	opacity: 0.8;
+	border-radius: 20px;
+	z-index: 999;
+}
+
+.note-transition-enter {
+	opacity: 0;
+}
+
+.note-transition-enter-active {
+	opacity: 1;
+	transform: translateY(-50px);
+	transition: opacity 1s, transform 1s;
+}
+.note-transition-exit {
+	opacity: 0;
+	transition: opacity 1s;
+	transform: translateY(-50px);
+}
+
+.board-message,
+.avatar-message {
+	display: -webkit-box;
+	position: absolute;
+	z-index: 9999999;
+	user-select: none;
+	max-width: 180px;
+	word-break: break-word;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	-webkit-line-clamp: 5;
+	-webkit-box-orient: vertical;
+}
+
+.message-transition-enter {
+	opacity: 0;
+}
+
+.message-transition-enter-active {
+	opacity: 1;
+	transition: opacity 7s, transform 7s;
+}
+.message-transition-exit {
+	opacity: 0;
+	transition: opacity 7s;
+}
+
+.user-connection-cursor {
+	position: absolute;
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+	top: 0;
+	left: 0;
+	transition: transform 0.2s ease-in-out;
+	z-index: 99999997;
+}
+.user-connection-cursor * {
+}
+
+.user-connection-cursor img {
+	width: 50px;
+	height: auto;
+}
+
+.room-button {
+	position: absolute;
+	top: 0;
+	left: 50vw;
+}
+
+/* .room-button-transition-enter,
+.room-button-transition-appear {
+	transform: translateY(50vh);
+	transition: transform 10s;
+} */
+
+/* .room-button-transition-enter-active, */
+.room-button-transition-appear-active {
+	transform: translateY(50vh);
+	transition: transform 5s;
+}
+
+.room-button-transition-appear-done {
+	transform: translateY(50vh);
+}
+
+/* .room-button-transition-exit {
+	opacity: 0;
+	transition: opacity 5s;
+	transform: translateY(-50px);
+}
+.room-button-transition-enter-done {
+	transform: translateY(-50px);
+} */
+
+.gif-transition-enter {
+	opacity: 0;
+}
+
+.gif-transition-enter-active {
+	opacity: 1;
+	transform: translateY(-50px);
+	transition: opacity 5s, transform 1s;
+}
+.gif-transition-exit {
+	opacity: 0;
+	transition: opacity 5s;
+	transform: translateY(-50px);
+}
+.gif-transition-enter-done {
+	transform: translateY(-50px);
+}
+
+.figure-transition-enter {
+}
+
+.figure-transition-enter-active {
+	transform: translateX(100vw);
+	transition: transform 10s;
+}
+.figure-transition-exit {
+	opacity: 0;
+}
+
+.animation-transition-enter,
+.avatar-message-transition-enter {
+	opacity: 0;
+}
+
+.animation-transition-enter-active {
+	opacity: 1;
+	transform: translateY(-50px);
+	transition: opacity 1s, transform 1s;
+}
+.animation-transition-exit {
+	opacity: 0;
+	transition: opacity 1s;
+	transform: translateY(-50px);
+}
+
+.avatar-message {
+	max-width: 280px;
+	-webkit-line-clamp: 6;
+	position: relative;
+}
+
+.avatar-message-transition-enter-active {
+	opacity: 1;
+	transform: translateY(-10px);
+	transition: opacity 1s, transform 1s;
+	top: 10px;
+}
+.avatar-message-transition-exit {
+	opacity: 0;
+	transition: opacity 1s;
+}
+
+.sound-text-transition-enter-active {
+	text-align: center;
+	opacity: 1;
+	transition: opacity 1s, transform 1s;
+}
+
+.sound-text-transition-exit {
+	text-align: center;
+	opacity: 0;
+	transition: opacity 1s;
+}
+
+.board-intro {
+	display: flex;
+	flex-direction: column;
+	padding: 10px;
+}
+
+.board-present {
+	display: flex;
+	flex-direction: column;
+	padding: 10px;
+	align-items: center;
+	font-family: 'Milkstore';
+	font-size: 1.2rem;
+}
+
+.board-present > *:first-child {
+	margin-bottom: 10px;
+}
+
+.board-intro img {
+	margin-top: 5px;
+	margin-bottom: 2px;
+}
+
+.room-present {
+	position: absolute;
+	top: 0;
+	left: 25vw;
+	z-index: 99999999999;
+}
+
+
+
+/* unvisited link */
+a:link {
+	color: rgb(0, 0, 0);
+	text-decoration: none;
+}
+  
+/* visited link */
+a:visited {
+	color: rgb(0, 37, 0);
+	text-decoration: none;
+}
+  
+/* mouse over link */
+a:hover {
+	color: rgb(46, 0, 23);
+	text-decoration: none;
+}
+  
+/* selected link */
+a:active {
+	color: rgb(0, 0, 41);
+	text-decoration: none;
+}
+
+.horse-view{
+	font-family: 'Open Sans', sans-serif;
+}
+
+.horse-spec{
+	display: flex;
+	align-items: center;
+	padding-top: 5px;
+}
+
+.horse-spec-text{
+	display: block;
+	margin-left: 15px;
+}

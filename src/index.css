@@ -1,0 +1,51 @@
+body {
+	margin: 0;
+	font-family: "poxel-font";;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	background-color: black;
+}
+
+body,
+html {
+	height: 100%;
+}
+
+code {
+	font-family: "poxel-font";
+}
+
+/* custom scrollbar */
+::-webkit-scrollbar {
+	width: 20px;
+	background-color: 'cyan';
+}
+
+::-webkit-scrollbar-track {
+	background-color: 'cyan';
+}
+
+::-webkit-scrollbar-thumb {
+	background-color: 'white';
+	border-radius: 20px;
+	border: 6px solid transparent;
+	background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background-color: 'cyan';
+}
+
+@font-face {
+	font-family: 'Milkstore';
+	src: url(./assets/fonts/Milkstore01-Clean.ttf);
+}
+
+@font-face {
+	font-family: 'poxel-font';
+	src: url("./assets/fonts/poxel-font.woff2") format('woff2'),
+	  url("./assets/fonts/poxel-font.woff") format('woff');
+	font-weight: 900;
+	font-style: normal;
+	font-stretch: normal;
+  }
