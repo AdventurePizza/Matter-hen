@@ -100,6 +100,6 @@
 		 "gh-pages": "^1.2.0",
        	"parcel-bundler": "^1.9.7"
 	},
-	"homepage": "https://tanerdurmaz.github.io/matter/",
+	"homepage": "https://adventurepizza.github.io/Matter-hen/",
 	"proxy": "https://matter-backend.herokuapp.com/"
 }

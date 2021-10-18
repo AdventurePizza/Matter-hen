@@ -229,7 +229,7 @@ export const BottomPanel = ({
 					music={music}
 					clearField={clearField}
 					//objkt
-					sendObjkt={(id) => {onAction('objkt', id)}}
+					sendObjkt={(id, objktType) => {onAction('objkt', id, objktType)}}
 				/>
 			</div>
 		</Drawer>

@@ -382,6 +382,7 @@ export interface IBoardObjkt{
 	id: string;
 	key: string;
 	isPinned?: boolean;
+	type: 'objkt' | 'objktStat' ;
 }
 
 export interface ITrash{

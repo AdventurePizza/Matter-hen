@@ -263,8 +263,9 @@ export const Board = ({
 			if(item && delta && delta.x  && delta.y){
 				const left = Math.round(item.left + delta.x);
 				const top = Math.round(item.top + delta.y);
-
+				console.log(item);
 				moveItem(item.itemType, item.id, left, top, delta.x, delta.y);
+
 			}
 			return undefined;
 		}
@@ -443,8 +444,9 @@ export const Board = ({
 							<BoardObject
 								{...objkt}
 								id={objkt.key}
-								type="objkt"
+								type={objkt.type}
 								objktId={objkt.id}
+								activeAddress={activeAddress}
 								onPin={() => {
 									pinObjkt(objkt.key);
 								}}

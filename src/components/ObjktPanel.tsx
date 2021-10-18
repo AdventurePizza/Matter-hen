@@ -20,35 +20,58 @@ const useStyles = makeStyles({
 });
 
 interface IObjktPanel {
-	sendObjkt: (id: string, type: 'objkt') => void;
+	sendObjkt: (id: string, type: string) => void;
 }
 
 export const ObjktPanel = ({ sendObjkt }: IObjktPanel) => {
 	const classes = useStyles();
 	const [inputObjkt, setInputObjkt] = useState('');
+	const [inputObjktStat, setinputObjktStat] = useState('');
 
 	return (
 		<div className={classes.container}>
-			<div style={{ paddingBlock: 5, paddingInline: 20, border: '1px dashed black' }}>
-				<TextField
-					inputProps={{ className: classes.input }}
-					color="primary" focused
-					value={inputObjkt}
-					variant="standard"
-					onChange={(e) => setInputObjkt(e.target.value)}
-					placeholder="enter objkt id"
-					className={classes.input}
-				/>
+			<div>
+				<div style={{ paddingBlock: 5, paddingInline: 20, border: '1px dashed black' }}>
+					<TextField
+						inputProps={{ className: classes.input }}
+						color="primary" focused
+						value={inputObjkt}
+						variant="standard"
+						onChange={(e) => setInputObjkt(e.target.value)}
+						placeholder="enter objkt id"
+						className={classes.input}
+					/>
+				</div>
+					<Button
+						variant="contained" color="primary"
+						onClick={() => {
+							sendObjkt (inputObjkt, 'objkt');
+						}}
+					>
+						List Objkt
+					</Button>
 			</div>
-				<Button
-					variant="contained" color="primary"
-					onClick={() => {
-						sendObjkt (inputObjkt, 'objkt');
-					}}
-				>
-					Add
-				</Button>
-
+			<div>
+				<div style={{ paddingBlock: 5, paddingInline: 20, border: '1px dashed black' }}>
+					<TextField
+						inputProps={{ className: classes.input }}
+						color="primary" focused
+						value={inputObjktStat}
+						variant="standard"
+						onChange={(e) => setinputObjktStat(e.target.value)}
+						placeholder="enter objkt id"
+						className={classes.input}
+					/>
+				</div>
+					<Button
+						variant="contained" color="primary"
+						onClick={() => {
+							sendObjkt (inputObjktStat, 'objktStat');
+						}}
+					>
+						Objkt Stats
+					</Button>
+			</div>
 		</div>
 	);
 };

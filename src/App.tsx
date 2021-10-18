@@ -1156,14 +1156,16 @@ function App() {
 		});
 	}, []);
 
-	const addObjkt = useCallback(async(id: string, objktKey?: string) => {
+	const addObjkt = useCallback(async(id: string, objktType: string, objktKey?: string) => {
 		const { x, y } = generateRandomXY(true, true);
+
 		const newObjkt: IBoardObjkt = {
 			top: y,
 			left: x,
 			key: objktKey || uuidv4(),
 			id: id,
-			isPinned: true
+			isPinned: true,
+			type: objktType
 		}
 		setObjkts((objkts) => objkts.concat(newObjkt));
 
@@ -1171,10 +1173,11 @@ function App() {
 
 		const result = await firebaseContext.pinRoomItem(room, {
 			...newObjkt,
-			type: 'objkt',
+			type: objktType,
 			left: newObjkt.left / window.innerWidth,
 			top: newObjkt.top / window.innerHeight
 		});
+
 	}, [roomId]);
 
 	
@@ -1702,7 +1705,7 @@ function App() {
 					break;
 				case 'objkt':
 					if (message.value) {
-						addObjkt(message.value, message.objktKey);
+						addObjkt(message.value.objktId, message.value.objktType, message.objktKey);
 					}
 					break;
 			}
@@ -2168,9 +2171,10 @@ function App() {
 				break;
 			case 'objkt':
 				const objktId = args[0] as string;
+				const objktType = args[1] as string;
 				socket.emit('event', {
 					key: 'objkt',
-					value: objktId
+					value: {objktId: objktId, objktType: objktType}
 				});
 				break;
 			default:
@@ -2415,14 +2419,15 @@ function App() {
 								text: item.value
 							});
 						}
-					} else if (item.type === 'objkt') {
+					} else if (item.type === 'objkt' || item.type === 'objktStat' ) {
 						pinnedObjkts.push({
 							...item,
 							top: item.top! * window.innerHeight,
 							left: item.left! * window.innerWidth,
 							isPinned: true,
 							key: item.key!,
-							id: item.id
+							id: item.id,
+							type: item.type
 						});
 					} else if (item.type === 'horse') {
 						getHorse(item.id).then((res) => {
@@ -3058,7 +3063,7 @@ function App() {
 					...horses.slice(horseIndex + 1)
 				]);
 			}
-		} else if (type === 'objkt') {
+		} else if (type === 'objkt' || type === 'objktStat') {
 			const objktIndex = objkts.findIndex((objkt) => objkt.key === id);
 			if (objktIndex !== -1) {
 				setObjkts([
@@ -3202,7 +3207,7 @@ function App() {
 							...horses.slice(horseIndex + 1)
 						]);
 					}
-				} else if (type === 'objkt') {
+				} else if (type === 'objkt' || type === 'objktStat' ) {
 					const objktIndex = objkts.findIndex((objkt) => objkt.key === id);
 					if (objktIndex !== -1) {
 						setObjkts([

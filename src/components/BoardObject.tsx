@@ -103,7 +103,7 @@ interface BoardObjectProps {
 	type:
 	| 'horse'
 	| 'objkt'
-	| 'objktHistory'
+	| 'objktStat'
 	| 'gif'
 	| 'image'
 	| 'video'
@@ -225,6 +225,9 @@ export const BoardObject = (props: BoardObjectProps) => {
 					case "objkt": 
 						unpinObjkt(item.id);
 					break;
+					case 'objktStat': 
+						unpinObjkt(item.id);
+					break;
 					case "text": 
 						unpinText(item.id);
 					break;
@@ -309,7 +312,7 @@ export const BoardObject = (props: BoardObjectProps) => {
       }
 
 	useEffect(() => {
-		if (type === 'objktHistory' || type === "objkt") {
+		if (type === 'objktStat' || type === "objkt") {
 
 			async function fetchMyAPI() {
 
@@ -336,7 +339,7 @@ export const BoardObject = (props: BoardObjectProps) => {
                     }
                     setForSale(tempForSale);
                     
-					if(type === 'objktHistory' ){
+					if(type === 'objktStat' ){
 						let sellCount = 0;
 						let objktRevenue = 0;
 
@@ -357,7 +360,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 	}, [])
 
 	useEffect(() => {
-		if (type === 'objktHistory' || type === "objkt") {
+		if (type === 'objktStat' || type === "objkt") {
 
 			async function fetchMyAPI() {
 
@@ -384,7 +387,7 @@ export const BoardObject = (props: BoardObjectProps) => {
                     }
                     setForSale(tempForSale);
                     
-					if(type === 'objktHistory' ){
+					if(type === 'objktStat' ){
 						let sellCount = 0;
 						let objktRevenue = 0;
 
@@ -406,7 +409,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 	}, [])
 
 	useEffect(() => {
-		if (type === 'objktHistory' || type === "objkt") {
+		if (type === 'objktStat' || type === "objkt") {
 			const interval = setInterval(async () => {
 				let sellCount = 0;
 
@@ -462,7 +465,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 				top,
 				left,
 				/* zIndex: isHovering ? 99999999 : 'auto' */
-				zIndex: (isHovering || type === 'chat') ? 99999999 : 99999998
+				zIndex: (isHovering || type === 'chat' || type === 'gate'  || type === 'trash'  || type === 'bgHolder' ) ? 99999999 : 99999998
 			}}
 			className={classes.container}
 			ref={drag}
@@ -582,7 +585,7 @@ export const BoardObject = (props: BoardObjectProps) => {
                         </div>
 					</div>
 				)}
-				{type === 'objktHistory' && (
+				{type === 'objktStat' && (
 					<div style={{ width: 680, height: 500, backgroundColor: "white", overflowY: 'auto', border: '1px dashed black' }}>
 
 						{objkt && <div  >
@@ -601,7 +604,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 
 
 							{
-								<div style={{ color: "white", pointerEvents: "auto", textAlign: "center" }}>
+								<div style={{ color: "blue", pointerEvents: "auto", textAlign: "center" }}>
 									<div>Total Sell Count: {sells}</div>
 									<div>Total Revenue: {revenue}</div>
 									<div>Token Holders: {objkt.token_holders.length}</div>
@@ -615,7 +618,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 													trade {trade.timestamp.slice(0, 10)} from {trade.seller.name ? <Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.xyz/' + trade.seller.name); }}>{trade.seller.name}</Button> : <Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.xyz/tz/' + trade.seller.address); }}>{trade.seller.address.slice(0, 6)} ... {trade.seller.address.slice(32, 36)}</Button>} {trade.amount} ed. {trade.swap.price / 1000000} tez {trade.buyer.name ? <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.xyz/' + trade.buyer.name); }}>{trade.buyer.name}</Button> : <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.xyz/tz/' + trade.buyer.address); }}>{trade.buyer.address.slice(0, 6)} ... {trade.buyer.address.slice(32, 36)}</Button>}
 												</div>
 												:
-												<div style={{ paddingLeft: 20, textAlign: "left", color: "white" }}>
+												<div style={{ paddingLeft: 20, textAlign: "left", color: "blue" }}>
 													trade {trade.timestamp.slice(0, 10)} from {trade.seller.name ? <Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.xyz/' + trade.seller.name); }}>{trade.seller.name}</Button> : <Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.xyz/tz/' + trade.seller.address); }}>{trade.seller.address.slice(0, 6)} ... {trade.seller.address.slice(32, 36)}</Button>} {trade.amount} ed. {trade.swap.price / 1000000} tez {trade.buyer.name ? <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.xyz/' + trade.buyer.name); }}>{trade.buyer.name}</Button> : <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.xyz/tz/' + trade.buyer.address); }}>{trade.buyer.address.slice(0, 6)} ... {trade.buyer.address.slice(32, 36)}</Button>}
 												</div>}</>
 									))}

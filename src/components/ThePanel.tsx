@@ -122,7 +122,7 @@ interface IThePanelProps {
 	music?: IMetadata;
 	clearField: (field: string) => void;
 	//objkt
-	sendObjkt: (id: string, type: 'objkt') => void;
+	sendObjkt: (id: string, type: string) => void;
 }
 
 interface IPanel {
@@ -418,7 +418,7 @@ const ThePanel = ({
 
 			{activePanel === 'objkt' &&
 				<div  className="background-icon-list" >
-					<ObjktPanel sendObjkt= {sendObjkt}/>
+					<ObjktPanel sendObjkt= {sendObjkt} />
 				</div>
 			}
 
