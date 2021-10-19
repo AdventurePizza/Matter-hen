@@ -1,3 +1,4 @@
+// @ts-nocheck
 //style
 import './Panel.css';
 //material ui
@@ -123,6 +124,8 @@ interface IThePanelProps {
 	clearField: (field: string) => void;
 	//objkt
 	sendObjkt: (id: string, type: string) => void;
+	//wallet
+	routeRoom: (roomName: string) => void;
 }
 
 interface IPanel {
@@ -182,6 +185,7 @@ const panels: IPanel[] =
 		{type: 'unsplash'},
 		{type: 'giphy'},
 		{type: 'objkt'}, 
+		{type: 'wallet'}, 
 	] 
 const useStyles = makeStyles({
 	input: {
@@ -261,7 +265,8 @@ const ThePanel = ({
 	myLocation,
 	music,
 	clearField,
-	sendObjkt
+	sendObjkt,
+	routeRoom
 }: IThePanelProps) => {
 	const [text, setText] = useState('');
 	const [isBackground, setisBackground] = useState(false);
@@ -437,6 +442,13 @@ const ThePanel = ({
 							onClick={() => {setActivePanel(panel.type); 
 								if(panel.type === "newroom"){onNewRoom()}
 								else if(panel.type === "home"){routeHome()}
+								else if(panel.type === "wallet"){
+									if(activeAccount)
+										routeRoom(activeAccount.address)
+									else{
+										sync();
+									}
+								}
 								else if(panel.type === "marketplace"){
 									pinMarketplace()
 								}

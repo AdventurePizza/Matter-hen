@@ -2291,6 +2291,7 @@ function App() {
 
 		// if (isInvalidRoom === undefined) {
 		firebaseContext.getRoom(room).then((result) => {
+			console.log("gee")
 			if (result.isSuccessful) {
 				setIsInvalidRoom(false);
 				setRoomData(result.data);
@@ -2308,10 +2309,10 @@ function App() {
 			// }
 		});
 		// }
-
+		console.log("out")
 		if (!hasFetchedRoomPinnedItems) {
 			setHasFetchedRoomPinnedItems(true);
-
+			console.log("in")
 			firebaseContext.getPlaylist(room).then((playlist) => {
 				if (playlist.data)
 					setMusicPlayer((musicPlayer) => ({
@@ -2679,7 +2680,7 @@ function App() {
 			}
 		}
 	};
-
+/*
 	useEffect(() => {
 		const videoIndex = videos.findIndex(
 			(video: IBoardVideo) => video.key === videoId
@@ -2694,7 +2695,7 @@ function App() {
 		} else {
 			setIsVidPinned(false);
 		}
-	}, [videoId, videos]);
+	}, [videoId, videos]);*/
 
 	const pinRace = async (RaceKey: string) => {
 		const raceIndex = races.findIndex((race) => race.key === RaceKey);
@@ -3611,7 +3612,9 @@ function App() {
 				email={userProfile.email}
 				myLocation={userProfile.location}
 				music={userProfile.musicMetadata}
-				clearField={(field) => actionHandler('clear-field', field)}	
+				clearField={(field) => actionHandler('clear-field', field)}
+				
+				routeRoom={routeRoom}
 
 			/>
 

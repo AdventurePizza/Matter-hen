@@ -1,8 +1,10 @@
+// @ts-nocheck
 import { IChatRoom, IFetchResponseBase, IOrder, IPinnedItem, IUserProfile, IPlaylist, IWaterfallMessage } from '../types';
 import { IRoomData } from '../components/SettingsPanel';
 
-import React, { useCallback, useContext } from 'react';
+import React, { useCallback, useContext, useEffect } from 'react';
 import { AuthContext } from './AuthProvider';
+import { DAppClient } from "@airgap/beacon-sdk";
 
 export interface IFirebaseContext {
 	createRoom: (
@@ -111,8 +113,23 @@ const fetchBase =
 		? ''
 		: 'https://matter-backend.herokuapp.com';
 
+let activeAccount;
+const dAppClient = new DAppClient({ name: "Beacon Docs" });
+
 export const FirebaseProvider: React.FC = ({ children }) => {
 	const { isLoggedIn, jwt } = useContext(AuthContext);
+
+	useEffect(() => {
+		async function getAcc() {
+			activeAccount = await dAppClient.getActiveAccount();
+			/*if (activeAccount)
+			  setSynced(activeAccount.address)
+			else
+			  setSynced('sync')*/
+		  }
+	  
+		  getAcc();
+	}, []);
 
 	const fetchAuthenticated = useCallback(
 		(path: string, request: Partial<RequestInit>) => {
@@ -152,7 +169,11 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 			roomName: string
 		): Promise<IFetchResponseBase & { data?: IChatRoom }> => {
 			const fetchRes = await fetchAuthenticated(`/room/${roomName}`, {
-				method: 'GET'
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ accountAddress: (activeAccount ? activeAccount.address : "")})
 			});
 
 			if (fetchRes.ok) {
@@ -215,7 +236,7 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({ item })
+				body: JSON.stringify({ item, accountAddress: (activeAccount ? activeAccount.address : "")})
 			});
 
 			if (fetchRes.ok) {
@@ -239,7 +260,7 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 					headers: {
 						'Content-Type': 'application/json'
 					},
-					body: JSON.stringify({ item })
+					body: JSON.stringify({ item, accountAddress: (activeAccount ? activeAccount.address : "")})
 				}
 			);
 
@@ -265,13 +286,17 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 	}, [fetchAuthenticated]);
 
 	const unpinRoomItem = useCallback(
-		async (roomName: string, itemId: string): Promise<IFetchResponseBase> => {
-			const fetchRes = await fetchAuthenticated(
-				`/room/${roomName}/pin/${itemId}`,
-				{
-					method: 'DELETE'
-				}
-			);
+		async (
+			roomName: string,
+			item: IPinnedItem
+		): Promise<IFetchResponseBase> => {
+			const fetchRes = await fetchAuthenticated(`/room/${roomName}/delete`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ item, accountAddress: (activeAccount ? activeAccount.address : "")})
+			});
 
 			if (fetchRes.ok) {
 				return { isSuccessful: true };

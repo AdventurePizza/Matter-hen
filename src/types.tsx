@@ -399,4 +399,4 @@ export interface IbgHolder{
 
 export type OrderWithMetadata = IOrder & { metadata?: INFTMetadata };
 
-export type newPanelTypes= 'empty' | 'settings' | 'home' | 'chat' | 'google' | 'unsplash' | 'giphy' | 'objkt' | 'youtube' | 'maps' | 'marketplace' | 'race' | 'horse' | 'music' |'+NFT' | 'email' | 'newroom' ;
+export type newPanelTypes= 'empty' | 'settings' | 'home' | 'chat' | 'google' | 'unsplash' | 'giphy' | 'objkt' | 'wallet' | 'youtube' | 'maps' | 'marketplace' | 'race' | 'horse' | 'music' |'+NFT' | 'email' | 'newroom' ;

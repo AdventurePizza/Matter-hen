@@ -72,6 +72,7 @@ export interface IBottomPanelProps {
 	myLocation?: string;
 	music?: IMetadata;
 	clearField: (field: string) => void;
+	routeRoom: (roomName: string) => void;
 }
 
 
@@ -126,7 +127,8 @@ export const BottomPanel = ({
 	email,
 	myLocation,
 	music,
-	clearField
+	clearField,
+	routeRoom
 }: IBottomPanelProps) => {
 	const [images, setImages] = useState<IImagesState[]>([]);
 	const [videos, setQueriedVideos] = useState<Array<any>>([]);
@@ -230,6 +232,8 @@ export const BottomPanel = ({
 					clearField={clearField}
 					//objkt
 					sendObjkt={(id, objktType) => {onAction('objkt', id, objktType)}}
+					//routeroom for wallet tab
+					routeRoom={routeRoom}
 				/>
 			</div>
 		</Drawer>
