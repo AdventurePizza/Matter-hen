@@ -48,9 +48,9 @@ import {SettingsPanel} from './SettingsPanel';
 import { ISubmit } from './NFT/OrderInput';
 import { IChatRoom, newPanelTypes, IMusicPlayer, IMetadata } from '../types';
 import { IGif } from '@giphy/js-types';
-import { DAppClient } from "@airgap/beacon-sdk";
+//import { DAppClient } from "@airgap/beacon-sdk";
 
-const dAppClient = new DAppClient({ name: "Beacon Docs" });
+//const dAppClient = new DAppClient({ name: "Beacon Docs" });
 let activeAccount;
 interface IThePanelProps {
 	//panel
@@ -312,7 +312,7 @@ const ThePanel = ({
 	};
 
 	useEffect(() => {
-		async function getAcc() {
+		/*async function getAcc() {
 			activeAccount = await dAppClient.getActiveAccount();
 			if (activeAccount){
 			  setSynced(activeAccount.address)
@@ -324,11 +324,11 @@ const ThePanel = ({
 			}
 		  }
 	  
-		  getAcc();
+		  getAcc();*/
 	}, []);
 
 	async function unsync() {
-		activeAccount = await dAppClient.getActiveAccount();
+		/*activeAccount = await dAppClient.getActiveAccount();
 		if (activeAccount) {
 		  // User already has account connected, everything is ready
 		  // You can now do an operation request, sign request, or send another permission request to switch wallet
@@ -338,11 +338,11 @@ const ThePanel = ({
 			setSynced('sync');
 			setShowUnsync(false);
 		  });
-		}
+		}*/
 	  }
 	  
 	async function sync() {
-		activeAccount = await dAppClient.getActiveAccount();
+		/*activeAccount = await dAppClient.getActiveAccount();
 		if (activeAccount) {
 		  // User already has account connected, everything is ready
 		  // You can now do an operation request, sign request, or send another permission request to switch wallet
@@ -364,7 +364,7 @@ const ThePanel = ({
 	
 			console.log("Got error:", error);
 		  }
-		}
+		}*/
 	  }
 
 	useEffect(() => {

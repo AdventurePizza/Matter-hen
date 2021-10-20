@@ -103,11 +103,11 @@ import ReactPlayer from 'react-player';
 /* import { Login } from './components/Login'; */
 import { Login } from './components/Login';
 
-import { DAppClient } from "@airgap/beacon-sdk";
+//import { DAppClient } from "@airgap/beacon-sdk";
 
 
-const dAppClient = new DAppClient({ name: "Beacon Docs" });
-let activeAccount;
+//const dAppClient = new DAppClient({ name: "Beacon Docs" });
+let activeAccount = "tz2DNkXjYmJwtYceizo3LwNVrqfrguWoqmBE";
 
 const clipboardy = require('clipboardy');
 
@@ -150,7 +150,7 @@ function App() {
 
 	useEffect(() => {
 		async function getAcc() {
-			activeAccount = await dAppClient.getActiveAccount();
+			//activeAccount = await dAppClient.getActiveAccount();
 			/*if (activeAccount)
 			  setSynced(activeAccount.address)
 			else

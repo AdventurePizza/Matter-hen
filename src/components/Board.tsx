@@ -419,6 +419,17 @@ export const Board = ({
 				top={500}
 				left={1780}
 			/>}
+
+			{!hideAllPins &&<BoardObject
+				id={"hist"}
+				type="wallet"
+				onPin={() => {}}
+				onUnpin={() => {}}
+				address="tz2DNkXjYmJwtYceizo3LwNVrqfrguWoqmBE"
+				top={500}
+				left={178}
+			/>}
+
 			{/*!hideAllPins &&<BoardObject
 				id={"objkt"}
 				objktId={"374125"}

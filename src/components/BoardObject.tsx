@@ -116,6 +116,7 @@ interface BoardObjectProps {
 	| 'gate'
 	| 'trash'
 	| 'bgHolder'
+	| 'wallet'
 	| 'tweet';
 	data?: IGif;
 	imgSrc?: string;
@@ -158,6 +159,8 @@ interface BoardObjectProps {
 	unpinObjkt?: (objktKey: string) => void;
 	pinBackground?: (imgSrc: string) => void;
 	unpinBackground?: () => void;
+
+	address?: string;
 }
 
 export const BoardObject = (props: BoardObjectProps) => {
@@ -191,7 +194,8 @@ export const BoardObject = (props: BoardObjectProps) => {
 		unpinText,
 		unpinObjkt,
 		pinBackground,
-		unpinBackground
+		unpinBackground,
+		address
 	} = props;
 	const location = useLocation();
 	const [isHovering, setIsHovering] = useState(false);
@@ -293,7 +297,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 
 		var ress = await result.json();
 		return ress;
-	}
+	}  
 
 	async function collect( swapId, amount ) {
 
@@ -309,6 +313,36 @@ export const BoardObject = (props: BoardObjectProps) => {
             })
         )
         .catch((e) => e)
+      }
+
+	async function transfer( ) {
+		console.log("transfer")
+		const contract = await Tezos.wallet.at(
+			"KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton" // For this example, we use the tzcolors contract on mainnet.
+		  );
+		  
+		  const TOKEN_ID = 449100; // FA2 token id
+		  const recipient = "tz2DNkXjYmJwtYceizo3LwNVrqfrguWoqmBE"; // Send to ourself
+		  
+		  // Call a method on the contract. In this case, we use the transfer entrypoint.
+		  // Taquito will automatically check if the entrypoint exists and if we call it with the right parameters.
+		  // In this case the parameters are [from, to, amount].
+		  // This will prepare the contract call and send the request to the connected wallet.
+		  const result = await contract.methods
+			.transfer([
+			  {
+				from_: "tz2DNkXjYmJwtYceizo3LwNVrqfrguWoqmBE",
+				txs: [
+				  {
+					to_: recipient,
+					token_id: TOKEN_ID,
+					amount: 1,
+				  },
+				],
+			  },
+			])
+			.send();
+		  console.log(result);
       }
 
 	useEffect(() => {
@@ -630,19 +664,25 @@ export const BoardObject = (props: BoardObjectProps) => {
 					</div>
 				)}
 				{type === 'gate' && subtype === 'top' && y != 2 &&(
-<					Button className={classes.buttonGate} onClick={() => { routeRoom(topRoom) }}>^</Button>
+					<Button className={classes.buttonGate} onClick={() => { routeRoom(topRoom) }}>^</Button>
 				)}
 				{type === 'gate' && subtype === 'left' && x != -2 &&(
-<					Button className={classes.buttonGate} onClick={() => { routeRoom(leftRoom) }}>{"<"}</Button>
+					<Button className={classes.buttonGate} onClick={() => { routeRoom(leftRoom) }}>{"<"}</Button>
 				)}
 				{type === 'gate' && subtype === 'bottom' && y != -2 &&(
-<					Button className={classes.buttonGateBottom} onClick={() => { routeRoom(bottomRoom) }}>^</Button>
+					<Button className={classes.buttonGateBottom} onClick={() => { routeRoom(bottomRoom) }}>^</Button>
 				)}
 				{type === 'gate' && subtype === 'right' && x != 2 &&(
-<					Button className={classes.buttonGate} onClick={() => { routeRoom(rightRoom) }}>{">"}</Button>
+					<Button className={classes.buttonGate} onClick={() => { routeRoom(rightRoom) }}>{">"}</Button>
 				)}
 				{type === 'trash' && <div ref={drop} style = {{ border: '3px dashed black', width:100, height: 30, backgroundColor: "white", color: "black", textAlign: "center", fontSize: 20}}> Trash </div>}
 				{type === 'bgHolder' && <div ref={drop} style = {{ border: '3px dashed black', width:180, height: 30, backgroundColor: "white", color: "black", textAlign: "center", fontSize: 20}}> Background </div>}
+				{type === 'wallet' && <div ref={drop} style = {{ border: '3px dashed black', width:180, height: 30, backgroundColor: "white", color: "black", textAlign: "center", fontSize: 20}}> 
+					<Button className={classes.buttonGate} onClick={() => {
+						transfer();
+
+					 }}>{">"}</Button>
+				 </div>}
 			
 			</Paper>
 
