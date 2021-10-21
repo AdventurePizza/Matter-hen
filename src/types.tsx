@@ -396,6 +396,13 @@ export interface IbgHolder{
 	img: string;
 }
 
+export interface IBoardWallet{
+	top: number;
+	left: number;
+	address: string;
+	key: string;
+	isPinned?: boolean;
+}
 
 export type OrderWithMetadata = IOrder & { metadata?: INFTMetadata };
 

@@ -38,6 +38,7 @@ import { NFTPanel } from './NFT/NFTPanel';
 import { MapsPanel } from './MapsPanel';
 import { RacePanel } from './RacePanel';
 import { ObjktPanel } from './ObjktPanel';
+import { WalletPanel } from './WalletPanel';
 import { MusicPlayerPanel } from './MusicPlayerPanel';
 import { Chat } from './Chat';
 import { EmailPanel } from './EmailPanel';
@@ -48,9 +49,9 @@ import {SettingsPanel} from './SettingsPanel';
 import { ISubmit } from './NFT/OrderInput';
 import { IChatRoom, newPanelTypes, IMusicPlayer, IMetadata } from '../types';
 import { IGif } from '@giphy/js-types';
-//import { DAppClient } from "@airgap/beacon-sdk";
+import { DAppClient } from "@airgap/beacon-sdk";
 
-//const dAppClient = new DAppClient({ name: "Beacon Docs" });
+const dAppClient = new DAppClient({ name: "Beacon Docs" });
 let activeAccount;
 interface IThePanelProps {
 	//panel
@@ -124,8 +125,10 @@ interface IThePanelProps {
 	clearField: (field: string) => void;
 	//objkt
 	sendObjkt: (id: string, type: string) => void;
-	//wallet
+	//wallet room
 	routeRoom: (roomName: string) => void;
+	//wallet board objects
+	sendWallet: (address: String) => void;
 }
 
 interface IPanel {
@@ -266,7 +269,8 @@ const ThePanel = ({
 	music,
 	clearField,
 	sendObjkt,
-	routeRoom
+	routeRoom,
+	sendWallet
 }: IThePanelProps) => {
 	const [text, setText] = useState('');
 	const [isBackground, setisBackground] = useState(false);
@@ -312,7 +316,7 @@ const ThePanel = ({
 	};
 
 	useEffect(() => {
-		/*async function getAcc() {
+		async function getAcc() {
 			activeAccount = await dAppClient.getActiveAccount();
 			if (activeAccount){
 			  setSynced(activeAccount.address)
@@ -324,11 +328,11 @@ const ThePanel = ({
 			}
 		  }
 	  
-		  getAcc();*/
+		  getAcc();
 	}, []);
 
 	async function unsync() {
-		/*activeAccount = await dAppClient.getActiveAccount();
+		activeAccount = await dAppClient.getActiveAccount();
 		if (activeAccount) {
 		  // User already has account connected, everything is ready
 		  // You can now do an operation request, sign request, or send another permission request to switch wallet
@@ -338,11 +342,11 @@ const ThePanel = ({
 			setSynced('sync');
 			setShowUnsync(false);
 		  });
-		}*/
+		}
 	  }
 	  
 	async function sync() {
-		/*activeAccount = await dAppClient.getActiveAccount();
+		activeAccount = await dAppClient.getActiveAccount();
 		if (activeAccount) {
 		  // User already has account connected, everything is ready
 		  // You can now do an operation request, sign request, or send another permission request to switch wallet
@@ -358,13 +362,14 @@ const ThePanel = ({
 			const permissions = await dAppClient.requestPermissions();
 			console.log("Got permissions:", permissions.address);
 			setSynced(permissions.address)
+			window.location.reload();
 			setShowUnsync(true);
 
 		  } catch (error) {
 	
 			console.log("Got error:", error);
 		  }
-		}*/
+		}
 	  }
 
 	useEffect(() => {
@@ -426,8 +431,13 @@ const ThePanel = ({
 					<ObjktPanel sendObjkt= {sendObjkt} />
 				</div>
 			}
+			
 
-
+			{activePanel === 'wallet' &&
+				<div  className="background-icon-list" >
+					<WalletPanel sendWallet= {sendWallet} />
+				</div>
+			}
 			
 			<div className="background-search-settings">
 				<Button className="app-btn" style={{ marginRight: "auto", color: "black", fontFamily: "poxel-font" }} title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, ishaan, kelly, taner, eric, anthony, maria`}  onClick={async () => { window.open('https://adventurenetworks.net/#/'); }} >Adventure Networks </Button>
@@ -442,13 +452,13 @@ const ThePanel = ({
 							onClick={() => {setActivePanel(panel.type); 
 								if(panel.type === "newroom"){onNewRoom()}
 								else if(panel.type === "home"){routeHome()}
-								else if(panel.type === "wallet"){
+								/*else if(panel.type === "wallet"){
 									if(activeAccount)
 										routeRoom(activeAccount.address)
 									else{
 										sync();
 									}
-								}
+								}*/
 								else if(panel.type === "marketplace"){
 									pinMarketplace()
 								}
@@ -553,5 +563,5 @@ export const searchSubmit = async (
 
 	if (setImages) setImages(imageDataWanted);
 };
-
+export {activeAccount};
 export default ThePanel;

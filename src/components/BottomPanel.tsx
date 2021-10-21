@@ -234,6 +234,8 @@ export const BottomPanel = ({
 					sendObjkt={(id, objktType) => {onAction('objkt', id, objktType)}}
 					//routeroom for wallet tab
 					routeRoom={routeRoom}
+					//wallet board objects
+					sendWallet={(address) => {onAction('wallet', address)}}
 				/>
 			</div>
 		</Drawer>

@@ -31,8 +31,10 @@ import {
     BeaconWallet,
     BeaconWalletNotInitialized,
   } from '@taquito/beacon-wallet'
+  
 import {useLocation} from 'react-router-dom'
 import { XYCoord, useDrop } from 'react-dnd';
+import { activeAccount } from './ThePanel';
 
 const _ = require("lodash"); 
 const Tezos = new TezosToolkit('https://mainnet.api.tez.ie')
@@ -148,7 +150,6 @@ interface BoardObjectProps {
 	raceId?: string;
 
 	objktId?: string;
-	activeAddress?: string;
 
 	routeRoom?: (roomName: string) => void;
 	subtype?: string;
@@ -159,7 +160,7 @@ interface BoardObjectProps {
 	unpinObjkt?: (objktKey: string) => void;
 	pinBackground?: (imgSrc: string) => void;
 	unpinBackground?: () => void;
-
+	unpinWallet?: (walletKey: string) => void;
 	address?: string;
 }
 
@@ -186,13 +187,13 @@ export const BoardObject = (props: BoardObjectProps) => {
 		setActivePanel,
 		raceId,
 		objktId,
-		activeAddress,
 		routeRoom,
 		subtype,
 		unpinGif,
 		unpinImage,
 		unpinText,
 		unpinObjkt,
+		unpinWallet,
 		pinBackground,
 		unpinBackground,
 		address
@@ -212,6 +213,8 @@ export const BoardObject = (props: BoardObjectProps) => {
 
 	const { socket } = useContext(AppStateContext);
 
+
+	let activeAddress = activeAccount ? activeAccount.address : "";
 	let leftRoom, rightRoom, topRoom, bottomRoom;
 	let x, y;
 	const [, drop] = useDrop({
@@ -238,6 +241,9 @@ export const BoardObject = (props: BoardObjectProps) => {
 					case "bgHolder": 
 						unpinBackground();
 					break;
+					case "wallet":
+						unpinWallet(item.id);
+					break;
 				}
 				return undefined;
 			}
@@ -249,6 +255,11 @@ export const BoardObject = (props: BoardObjectProps) => {
 				else if(item.itemType === "gif"){
 					pinBackground("https://i.giphy.com/media/" + item.data.id + "/giphy.webp");
 					unpinGif(item.id);
+				}
+			}
+			else if(type === "wallet"){
+				if(item.itemType === "objkt"){
+					transfer(item.objktId, activeAddress, address);
 				}
 			}
 
@@ -315,14 +326,14 @@ export const BoardObject = (props: BoardObjectProps) => {
         .catch((e) => e)
       }
 
-	async function transfer( ) {
+	async function transfer(tokenID, sender, recipient  ) {
 		console.log("transfer")
 		const contract = await Tezos.wallet.at(
-			"KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton" // For this example, we use the tzcolors contract on mainnet.
+			"KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton" 
 		  );
 		  
-		  const TOKEN_ID = 449100; // FA2 token id
-		  const recipient = "tz2DNkXjYmJwtYceizo3LwNVrqfrguWoqmBE"; // Send to ourself
+		  //const TOKEN_ID = 449081; // FA2 token id
+		  //const recipient = "tz2DNkXjYmJwtYceizo3LwNVrqfrguWoqmBE"; // Send to ourself
 		  
 		  // Call a method on the contract. In this case, we use the transfer entrypoint.
 		  // Taquito will automatically check if the entrypoint exists and if we call it with the right parameters.
@@ -331,11 +342,11 @@ export const BoardObject = (props: BoardObjectProps) => {
 		  const result = await contract.methods
 			.transfer([
 			  {
-				from_: "tz2DNkXjYmJwtYceizo3LwNVrqfrguWoqmBE",
+				from_: sender,
 				txs: [
 				  {
 					to_: recipient,
-					token_id: TOKEN_ID,
+					token_id: tokenID,
 					amount: 1,
 				  },
 				],
@@ -474,7 +485,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 
 
 	const [{ isDragging }, drag, preview] = useDrag({
-		item: { id, left, top, itemType: type, type: 'item', imgSrc, data },
+		item: { id, left, top, itemType: type, type: 'item', imgSrc, data, objktId },
 		collect: (monitor) => ({
 			isDragging: monitor.isDragging()
 		})
@@ -677,11 +688,8 @@ export const BoardObject = (props: BoardObjectProps) => {
 				)}
 				{type === 'trash' && <div ref={drop} style = {{ border: '3px dashed black', width:100, height: 30, backgroundColor: "white", color: "black", textAlign: "center", fontSize: 20}}> Trash </div>}
 				{type === 'bgHolder' && <div ref={drop} style = {{ border: '3px dashed black', width:180, height: 30, backgroundColor: "white", color: "black", textAlign: "center", fontSize: 20}}> Background </div>}
-				{type === 'wallet' && <div ref={drop} style = {{ border: '3px dashed black', width:180, height: 30, backgroundColor: "white", color: "black", textAlign: "center", fontSize: 20}}> 
-					<Button className={classes.buttonGate} onClick={() => {
-						transfer();
-
-					 }}>{">"}</Button>
+				{type === 'wallet' && <div ref={drop} style = {{ border: '3px dashed black', width:430, height: 30, backgroundColor: "white", color: "black", textAlign: "center", fontSize: 20}}> 
+				{address}
 				 </div>}
 			
 			</Paper>
@@ -691,6 +699,12 @@ export const BoardObject = (props: BoardObjectProps) => {
 	);
 };
 
+/*
+					<Button className={classes.buttonGate} onClick={() => {
+						transfer();
+
+					 }}>{">"}</Button>
+*/
 const activateFireworks = () => {
 	let duration = 2 * 1000;
 	let animationEnd = Date.now() + duration;

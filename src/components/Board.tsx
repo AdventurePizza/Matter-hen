@@ -24,6 +24,7 @@ import {
 	newPanelTypes,
 	IBoardRace,
 	IBoardObjkt,
+	IBoardWallet,
 	ITrash,
 	IbgHolder
 } from '../types';
@@ -121,7 +122,6 @@ interface IBoardProps {
 	setActivePanel: (panel: newPanelTypes) => void;
 	pinRace: (raceKey: string) => void;
 	unpinRace: (raceKey: string) => void;
-	activeAddress: string;
 	objkts: IBoardObjkt[];
 	pinObjkt: (objktKey: string) => void;
 	unpinObjkt: (objktKey: string) => void;
@@ -129,6 +129,9 @@ interface IBoardProps {
 	routeRoom: (roomName: string) => void;
 	trash: ITrash;
 	bgHolder: IbgHolder;
+	wallets: IBoardWallet[];
+	unpinWallet: (walletKey: string) => void;
+	updateWallets: (walletKey: string) => void;
 }
 
 
@@ -198,14 +201,16 @@ export const Board = ({
 	setActivePanel,
 	pinRace,
 	unpinRace,
-	activeAddress,
 	objkts,
 	pinObjkt,
 	unpinObjkt,
 	updateObjkts,
 	routeRoom,
 	trash,
-	bgHolder
+	bgHolder,
+	wallets,
+	unpinWallet,
+	updateWallets
 }: IBoardProps) => {
 	// const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
 	// 	'begin'
@@ -362,6 +367,7 @@ export const Board = ({
 				unpinText={unpinText}
 				unpinObjkt={unpinObjkt}
 				unpinBackground={unpinBackground}
+				unpinWallet={unpinWallet}
 			/>}
 
 			{!hideAllPins && <BoardObject
@@ -420,15 +426,6 @@ export const Board = ({
 				left={1780}
 			/>}
 
-			{!hideAllPins &&<BoardObject
-				id={"hist"}
-				type="wallet"
-				onPin={() => {}}
-				onUnpin={() => {}}
-				address="tz2DNkXjYmJwtYceizo3LwNVrqfrguWoqmBE"
-				top={500}
-				left={178}
-			/>}
 
 			{/*!hideAllPins &&<BoardObject
 				id={"objkt"}
@@ -440,6 +437,33 @@ export const Board = ({
 				top={300}
 				left={500}
 			/>*/}
+
+			{!hideAllPins ? (
+				<TransitionGroup>
+					{wallets.map((wallet) => (
+						<CSSTransition
+							key={wallet.key}
+							timeout={5000}
+							classNames="gif-transition"
+							onEntered={() => {
+
+							}}
+						>
+							<BoardObject
+								{...wallet}
+								id={wallet.key}
+								address={wallet.address}
+								type="wallet"
+								onPin={() => {
+								}}
+								onUnpin={() => {
+								}}
+							/>
+						</CSSTransition>
+					))}
+				</TransitionGroup>
+			) : null}
+
 
 			{!hideAllPins ? (
 				<TransitionGroup>
@@ -457,7 +481,6 @@ export const Board = ({
 								id={objkt.key}
 								type={objkt.type}
 								objktId={objkt.id}
-								activeAddress={activeAddress}
 								onPin={() => {
 									pinObjkt(objkt.key);
 								}}

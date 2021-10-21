@@ -43,7 +43,8 @@ import {
 	IBoardRace,
 	IBoardObjkt,
 	ITrash,
-	IbgHolder
+	IbgHolder,
+	IBoardWallet
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip, Button } from '@material-ui/core';
@@ -107,7 +108,7 @@ import { Login } from './components/Login';
 
 
 //const dAppClient = new DAppClient({ name: "Beacon Docs" });
-let activeAccount = "tz2DNkXjYmJwtYceizo3LwNVrqfrguWoqmBE";
+//let activeAccount;
 
 const clipboardy = require('clipboardy');
 
@@ -122,6 +123,7 @@ const BOTTOM_PANEL_MARGIN_RATIO = 1.5;
 // });
 
 function App() {
+
 	const { socket } = useContext(AppStateContext);
 	const {
 		updateCoordinates,
@@ -149,15 +151,15 @@ function App() {
 	const [contractMarketplace, setContractMarketplace] = useState<Marketplace>();
 
 	useEffect(() => {
-		async function getAcc() {
-			//activeAccount = await dAppClient.getActiveAccount();
-			/*if (activeAccount)
-			  setSynced(activeAccount.address)
-			else
-			  setSynced('sync')*/
+		/*async function getAcc() {
+			let savedAccount = await dAppClient.getActiveAccount();
+
+			if (savedAccount)
+			  activeAccount = savedAccount.address;
+
 		  }
 	  
-		  getAcc();
+		  getAcc();*/
 	}, []);
 
 	useEffect(() => {
@@ -350,6 +352,8 @@ function App() {
 	const [horses, setHorses] = useState<IBoardHorse[]>([]);
 
 	const [objkts, setObjkts] = useState<IBoardObjkt[]>([]);
+
+	const [wallets, setWallets] = useState<IBoardWallet[]>([]);
 
 	const [activePanel, setActivePanel] = useState<newPanelTypes>('empty');
 
@@ -1180,7 +1184,28 @@ function App() {
 
 	}, [roomId]);
 
-	
+	const addWallet = useCallback(async(address: string, walletKey?: string) => {
+		const { x, y } = generateRandomXY(true, true);
+
+		const newWallet: IBoardWallet = {
+			top: y,
+			left: x,
+			key: walletKey || uuidv4(),
+			address: address,
+			isPinned: true,
+			type: "wallet"
+		}
+		setWallets((wallets) => wallets.concat(newWallet));
+
+		const room = roomId || '0,0';
+
+		const result = await firebaseContext.pinRoomItem(room, {
+			...newWallet,
+			left: newWallet.left / window.innerWidth,
+			top: newWallet.top / window.innerHeight
+		});
+
+	}, [roomId]);
 
 	const handleMoveItemMessage = useCallback(
 		(message: IMessageEvent) => {
@@ -1322,9 +1347,23 @@ function App() {
 						]);
 					}
 					break;
+				case 'wallet':
+					const walletIndex = objkts.findIndex((wallet) => wallet.key === itemKey);
+					if (walletIndex !== -1) {
+						setObjkts([
+							...wallets.slice(0, walletIndex),
+							{
+								...wallets[walletIndex],
+								top: relativeTop,
+								left: relativeLeft
+							},
+							...wallets.slice(walletIndex + 1)
+						]);
+					}
+					break;
 			}
 		},
-		[images, videos, NFTs, gifs, pinnedText, tweets, horses, objkts]
+		[images, videos, NFTs, gifs, pinnedText, tweets, horses, objkts, wallets]
 	);
 
 	// const onBuy = async (orderId: string) => {
@@ -1706,6 +1745,11 @@ function App() {
 				case 'objkt':
 					if (message.value) {
 						addObjkt(message.value.objktId, message.value.objktType, message.objktKey);
+					}
+					break;
+				case 'wallet':
+					if (message.value) {
+						addWallet(message.value.address, message.walletKey);
 					}
 					break;
 			}
@@ -2177,6 +2221,15 @@ function App() {
 					value: {objktId: objktId, objktType: objktType}
 				});
 				break;
+			case 'wallet':
+				const address = args[0] as string;
+				socket.emit('event', {
+					key: 'wallet',
+					value: {address: address}
+				});
+				break;
+
+
 			default:
 		}
 	};
@@ -2291,7 +2344,6 @@ function App() {
 
 		// if (isInvalidRoom === undefined) {
 		firebaseContext.getRoom(room).then((result) => {
-			console.log("gee")
 			if (result.isSuccessful) {
 				setIsInvalidRoom(false);
 				setRoomData(result.data);
@@ -2341,6 +2393,7 @@ function App() {
 				const pinnedHorses: IBoardHorse[] = [];
 				const pinnedTweets: ITweet[] = [];
 				const pinnedObjkts: IBoardObjkt[] = [];
+				const pinnedWallets: IBoardWallet[] = [];
 
 				let backgroundType: 'image' | 'map' | 'race' | 'marketplace' | 'video' | undefined;
 				let backgroundImg: string | undefined;
@@ -2430,7 +2483,17 @@ function App() {
 							id: item.id,
 							type: item.type
 						});
-					} else if (item.type === 'horse') {
+					} else if (item.type === 'wallet') {
+						pinnedWallets.push({
+							...item,
+							top: item.top! * window.innerHeight,
+							left: item.left! * window.innerWidth,
+							isPinned: true,
+							key: item.key!,
+							address: item.address,
+						});
+					} 
+					else if (item.type === 'horse') {
 						getHorse(item.id).then((res) => {
 							pinnedHorses.push({
 								...item,
@@ -2488,6 +2551,7 @@ function App() {
 				setHorses(pinnedHorses);
 				setRaces(pinnedRaces);
 				setObjkts(pinnedObjkts);
+				setWallets(pinnedWallets);
 			});
 		}
 	}, [
@@ -3077,6 +3141,19 @@ function App() {
 					...objkts.slice(objktIndex + 1)
 				]);
 			}
+		} else if (type === 'wallet') {
+			const walletIndex = wallets.findIndex((wallet) => wallet.key === id);
+			if (walletIndex !== -1) {
+				setWallets([
+					...wallets.slice(0, walletIndex),
+					{
+						...wallets[walletIndex],
+						top,
+						left
+					},
+					...wallets.slice(walletIndex + 1)
+				]);
+			}
 		}
 
 		if (type === 'chat') {
@@ -3221,6 +3298,19 @@ function App() {
 							...objkts.slice(objktIndex + 1)
 						]);
 					}
+				} else if (type === 'wallet') {
+					const walletIndex = wallets.findIndex((wallet) => wallet.key === id);
+					if (walletIndex !== -1) {
+						setWallets([
+							...wallets.slice(0, walletIndex),
+							{
+								...wallets[walletIndex],
+								top,
+								left
+							},
+							...wallets.slice(walletIndex + 1)
+						]);
+					}
 				}
 
 				return;
@@ -3283,6 +3373,31 @@ function App() {
 					key: 'unpin-item',
 					type: 'objkt',
 					itemKey: objktKey
+				});
+			} else if (message) {
+				setModalErrorMessage(message);
+			}
+		}
+	};
+
+
+	const unpinWallet = async (walletKey: string) => {
+		const index = wallets.findIndex((wallet) => wallet.key === walletKey); 
+		const wallet = wallets[index];
+		const room = roomId || '0,0';
+
+		if (wallet && wallet.isPinned) {
+			const { isSuccessful, message } = await firebaseContext.unpinRoomItem(
+				room,
+				wallet.key
+			);
+			if (isSuccessful) {
+				setWallets([...wallets.slice(0, index), ...wallets.slice(index + 1)]);
+
+				socket.emit('event', {
+					key: 'unpin-item',
+					type: 'wallet',
+					itemKey: walletKey
 				});
 			} else if (message) {
 				setModalErrorMessage(message);
@@ -3476,7 +3591,6 @@ function App() {
 					setActivePanel= {setActivePanel}
 					pinRace={pinRace}
 					unpinRace={unpinRace}
-					activeAddress={activeAccount ? activeAccount.address : ""}
 					objkts={objkts}
 					pinObjkt={pinObjkt}
 					unpinObjkt={unpinObjkt}
@@ -3484,6 +3598,9 @@ function App() {
 					routeRoom={routeRoom}
 					trash={trash}
 					bgHolder={bgHolder}
+					wallets={wallets}
+					unpinWallet={unpinWallet}
+					updateWallets={setWallets}
 				/>
 			</Route>
 

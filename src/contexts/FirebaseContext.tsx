@@ -4,7 +4,7 @@ import { IRoomData } from '../components/SettingsPanel';
 
 import React, { useCallback, useContext, useEffect } from 'react';
 import { AuthContext } from './AuthProvider';
-//import { DAppClient } from "@airgap/beacon-sdk";
+import { activeAccount } from '../components/ThePanel';
 
 export interface IFirebaseContext {
 	createRoom: (
@@ -113,22 +113,18 @@ const fetchBase =
 		? ''
 		: 'https://matter-backend.herokuapp.com';
 
-let activeAccount = "tz2DNkXjYmJwtYceizo3LwNVrqfrguWoqmBE";
+//let activeAccount;
 //const dAppClient = new DAppClient({ name: "Beacon Docs" });
 
 export const FirebaseProvider: React.FC = ({ children }) => {
 	const { isLoggedIn, jwt } = useContext(AuthContext);
 
 	useEffect(() => {
-		async function getAcc() {
-			//activeAccount = await dAppClient.getActiveAccount();
-			/*if (activeAccount)
-			  setSynced(activeAccount.address)
-			else
-			  setSynced('sync')*/
+		/*async function getAcc() {
+			activeAccount = await dAppClient.getActiveAccount();
 		  }
 	  
-		  getAcc();
+		  getAcc();*/
 	}, []);
 
 	const fetchAuthenticated = useCallback(
