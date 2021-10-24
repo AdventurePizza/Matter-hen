@@ -402,6 +402,7 @@ export interface IBoardWallet{
 	address: string;
 	key: string;
 	isPinned?: boolean;
+	domain?: string;
 }
 
 export type OrderWithMetadata = IOrder & { metadata?: INFTMetadata };

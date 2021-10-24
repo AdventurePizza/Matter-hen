@@ -443,7 +443,7 @@ export const Board = ({
 					{wallets.map((wallet) => (
 						<CSSTransition
 							key={wallet.key}
-							timeout={5000}
+							timeout={10}
 							classNames="gif-transition"
 							onEntered={() => {
 
@@ -453,6 +453,7 @@ export const Board = ({
 								{...wallet}
 								id={wallet.key}
 								address={wallet.address}
+								domain={wallet.domain}
 								type="wallet"
 								onPin={() => {
 								}}
@@ -470,7 +471,7 @@ export const Board = ({
 					{objkts.map((objkt) => (
 						<CSSTransition
 							key={objkt.key}
-							timeout={5000}
+							timeout={10}
 							classNames="gif-transition"
 							onEntered={() => {
 
@@ -499,7 +500,7 @@ export const Board = ({
 					{races.map((race) => (
 						<CSSTransition
 							key={race.key}
-							timeout={5000}
+							timeout={10}
 							classNames="gif-transition"
 							onEntered={() => {
 								if (!race.isPinned) {
@@ -547,7 +548,7 @@ export const Board = ({
 					{horses.map((horse) => (
 						<CSSTransition
 							key={horse.key}
-							timeout={5000}
+							timeout={10}
 							classNames="gif-transition"
 							onEntered={() => {
 								if (!horse.isPinned) {
@@ -680,7 +681,7 @@ export const Board = ({
 			{/* <TransitionGroup>
 				<CSSTransition
 					appear
-					timeout={5000}
+					timeout={10}
 					classNames="room-button-transition"
 					onEnter={() => {
 						setTimeout(() => {
@@ -695,7 +696,7 @@ export const Board = ({
 				</CSSTransition>
 				<CSSTransition
 					appear
-					timeout={5000}
+					timeout={10}
 					classNames="room-button-transition"
 					onEnter={() => {
 						setTimeout(() => {
@@ -715,7 +716,7 @@ export const Board = ({
 					{Object.values(pinnedText).map((text) => (
 						<CSSTransition
 							key={text.key}
-							timeout={5000}
+							timeout={10}
 							classNames="gif-transition"
 						>
 							{!hideAllPins ? (
@@ -738,7 +739,7 @@ export const Board = ({
 					{tweets.map((tweet) => (
 						<CSSTransition
 							key={tweet.id}
-							timeout={5000}
+							timeout={10}
 							classNames="gif-transition"
 						>
 							<BoardObject
@@ -761,7 +762,7 @@ export const Board = ({
 					{gifs.map((gif) => (
 						<CSSTransition
 							key={gif.key}
-							timeout={5000}
+							timeout={10}
 							classNames="gif-transition"
 							onEntered={() => {
 								if (!gif.isPinned) {
@@ -830,7 +831,7 @@ export const Board = ({
 					{videos.map((video) => (
 						<CSSTransition
 							key={video.key}
-							timeout={5000}
+							timeout={10}
 							classNames="gif-transition"
 							onEntered={() => {
 								if (!video.isPinned) {
@@ -867,7 +868,7 @@ export const Board = ({
 				{animations.map((animation) => (
 					<CSSTransition
 						key={animation.type}
-						timeout={5000}
+						timeout={10}
 						classNames="animation-transition"
 						onEntered={() => {
 							const index = animations.findIndex(
@@ -889,7 +890,7 @@ export const Board = ({
 					{NFTs.map((nft) => (
 						<CSSTransition
 							key={nft.key}
-							timeout={5000}
+							timeout={10}
 							classNames="gif-transition"
 							onEntered={() => {
 								if (!nft.isPinned) {

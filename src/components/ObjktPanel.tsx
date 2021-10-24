@@ -31,6 +31,7 @@ export const ObjktPanel = ({ sendObjkt }: IObjktPanel) => {
 	return (
 		<div className={classes.container}>
 			<div>
+			<div style={{ display:"flex"}}>
 				<div style={{ paddingBlock: 5, paddingInline: 20, border: '1px dashed black' }}>
 					<TextField
 						inputProps={{ className: classes.input }}
@@ -50,28 +51,9 @@ export const ObjktPanel = ({ sendObjkt }: IObjktPanel) => {
 					>
 						List Objkt
 					</Button>
-			</div>
-			<div>
-				<div style={{ paddingBlock: 5, paddingInline: 20, border: '1px dashed black' }}>
-					<TextField
-						inputProps={{ className: classes.input }}
-						color="primary" focused
-						value={inputObjktStat}
-						variant="standard"
-						onChange={(e) => setinputObjktStat(e.target.value)}
-						placeholder="enter objkt id"
-						className={classes.input}
-					/>
 				</div>
-					<Button
-						variant="contained" color="primary"
-						onClick={() => {
-							sendObjkt (inputObjktStat, 'objktStat');
-						}}
-					>
-						Objkt Stats
-					</Button>
 			</div>
+
 		</div>
 	);
 };

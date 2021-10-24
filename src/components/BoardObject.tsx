@@ -35,6 +35,10 @@ import {
 import {useLocation} from 'react-router-dom'
 import { XYCoord, useDrop } from 'react-dnd';
 import { activeAccount } from './ThePanel';
+import walletImage from '../assets/buttons/wallet.png'
+import walletReceiveImage from '../assets/buttons/wallet_receive.png'
+import trashImage from '../assets/buttons/trash.png'
+import trashOpenImage from '../assets/buttons/trash_open.png'
 
 const _ = require("lodash"); 
 const Tezos = new TezosToolkit('https://mainnet.api.tez.ie')
@@ -71,18 +75,25 @@ const useStyles = makeStyles({
 	button: {
 		color: "black",
 		fontFamily: 'poxel-font',
+		fontSize: 12
 	},
 
     buttonLarge: {
 		color: "black",
 		fontFamily: 'poxel-font',
-        fontSize: 20
+        fontSize: 18
 	},
 
     buttonBuy: {
 		color: "black",
 		fontFamily: 'poxel-font',
         fontSize: 20
+	},
+
+    buttonSize: {
+		color: "black",
+		fontFamily: 'poxel-font',
+        fontSize: 10
 	},
 
 	buttonGate: {
@@ -162,6 +173,7 @@ interface BoardObjectProps {
 	unpinBackground?: () => void;
 	unpinWallet?: (walletKey: string) => void;
 	address?: string;
+	domain?: string;
 }
 
 export const BoardObject = (props: BoardObjectProps) => {
@@ -196,7 +208,8 @@ export const BoardObject = (props: BoardObjectProps) => {
 		unpinWallet,
 		pinBackground,
 		unpinBackground,
-		address
+		address,
+		domain
 	} = props;
 	const location = useLocation();
 	const [isHovering, setIsHovering] = useState(false);
@@ -209,6 +222,8 @@ export const BoardObject = (props: BoardObjectProps) => {
 	const [sId, setSId] = useState(0);
 	const [sPrice, setSPrice] = useState(0);
 
+	const [size, setSize] = useState(0);
+	const [highlight, setHighlight] = useState(false);
 	const classes = useStyles();
 
 	const { socket } = useContext(AppStateContext);
@@ -217,7 +232,23 @@ export const BoardObject = (props: BoardObjectProps) => {
 	let activeAddress = activeAccount ? activeAccount.address : "";
 	let leftRoom, rightRoom, topRoom, bottomRoom;
 	let x, y;
-	const [, drop] = useDrop({
+
+	function isDropable(holding){
+		console.log("holding " + holding + " reporting " + type);
+		if(holding != "trash" && type === "trash" ){
+			return true;
+		}
+		else if((holding === "image" || holding === "gif" ) && type === "bgHolder" ){
+			return true;
+		}
+		else if((holding === "objkt" ) && type === "wallet" ){
+			return true;
+		}
+		else
+			return false;
+	}
+
+	const [{ isOver, canDrop }, drop] = useDrop({
 		accept: 'item',
 		drop(item: IPinnedItem, monitor) {
 			const delta = monitor.getDifferenceFromInitialOffset() as XYCoord;
@@ -263,7 +294,12 @@ export const BoardObject = (props: BoardObjectProps) => {
 				}
 			}
 
-		}
+		},
+		canDrop: (item: IPinnedItem) => isDropable(item.itemType),
+		collect: (monitor) => ({
+			isOver: !!monitor.isOver(),
+			canDrop: !!monitor.canDrop()
+		  })
 	});
 	if(location.pathname.length != 1){
 		x = parseInt(location.pathname.split("/")[2].split(",")[0]);
@@ -384,7 +420,7 @@ export const BoardObject = (props: BoardObjectProps) => {
                     }
                     setForSale(tempForSale);
                     
-					if(type === 'objktStat' ){
+
 						let sellCount = 0;
 						let objktRevenue = 0;
 
@@ -395,7 +431,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 
 						setSells(sellCount);
 						setRevenue(objktRevenue / 1000000);
-					}
+					
 					
 				}
 
@@ -432,7 +468,6 @@ export const BoardObject = (props: BoardObjectProps) => {
                     }
                     setForSale(tempForSale);
                     
-					if(type === 'objktStat' ){
 						let sellCount = 0;
 						let objktRevenue = 0;
 
@@ -443,7 +478,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 
 						setSells(sellCount);
 						setRevenue(objktRevenue / 1000000);
-					}
+					
 					
 				}
 
@@ -487,7 +522,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 	const [{ isDragging }, drag, preview] = useDrag({
 		item: { id, left, top, itemType: type, type: 'item', imgSrc, data, objktId },
 		collect: (monitor) => ({
-			isDragging: monitor.isDragging()
+			isDragging: monitor.isDragging(),
 		})
 	});
 
@@ -515,7 +550,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 			className={classes.container}
 			ref={drag}
 		>
-			<Paper
+			{!isDragging &&  <Paper
 				elevation={0}
 				onMouseEnter={() => setIsHovering(true)}
 				onMouseLeave={() => setIsHovering(false)}
@@ -607,12 +642,12 @@ export const BoardObject = (props: BoardObjectProps) => {
 						/>
 					</div>
 				)}
-				{type === 'objkt' && (
-					<div style={{ width: 340,  backgroundColor: "white" , border: '1px dashed black'}}>
+				{type === 'objkt' && size === 0 && (
+					<div style={{ width: 340, backgroundColor: "white" , border: '1px dashed black'}}>
                         {objkt && <div style={{display:"flex", alignItems: "center", paddingInline:6}} > 
 							<div style={{color: "black", textAlign: "left"}}> {forSale}  / {objkt.supply}  </div>
-							<div style={{ color: "black", textAlign: "center", fontSize: 20, margin:"auto" }} ><Button className={classes.button}  title={objkt.title} onClick={() => { window.open('https://www.hicetnunc.xyz/objkt/' + objkt.id); }}>{objkt.title}</Button></div>
-							<div style={{color: "black", textAlign: "right"}}>{ Number(sPrice / 1000000)} tez</div>
+							<div style={{ color: "black", textAlign: "center", fontSize: 20, margin:"auto" }} ><Button className={classes.buttonLarge}  title={objkt.title} onClick={() => { window.open('https://www.hicetnunc.xyz/objkt/' + objkt.id); }}>{objkt.title}</Button></div>
+							<div style={{color: "black", textAlign: "right"}}>  <Button className={classes.buttonGateBottom} title={"size"} onClick={() => { setSize(1) }}>^</Button></div>
 						</div>}
 						{ objkt && objkt.mime === "video/mp4" && 
 							<video  width="100%" title={"Shell Sort"} autoPlay={true} muted controls controlsList="nodownload" loop  >
@@ -624,13 +659,76 @@ export const BoardObject = (props: BoardObjectProps) => {
 
 
                         <div style={{ color: "white", pointerEvents: "auto", textAlign: "center" }}>
-                            {sId != 0 && <Button className={classes.buttonBuy} title={"buy"} onClick={() => { collect(sId, sPrice) }}>BUY</Button>}
+                            {sId != 0 && <Button className={classes.buttonBuy} title={"buy"} onClick={() => { collect(sId, sPrice) }}>{ Number(sPrice / 1000000)} tez BUY</Button>}
                             {sId === 0 && <Button className={classes.buttonBuy} title={"buy"} onClick={() => { collect(sId, sPrice) }}>Not Available</Button>}
 
                         </div>
 					</div>
 				)}
-				{type === 'objktStat' && (
+				{type === 'objkt' && size === 1 && (
+					<div style={{ width: 340, maxHeight:400, overflowY: 'auto',  backgroundColor: "white" , border: '1px dashed black'}}>
+                        {objkt && <div style={{display:"flex", alignItems: "center", paddingInline:6}} > 
+							<div style={{color: "black", textAlign: "left"}}> {forSale}  / {objkt.supply}  </div>
+							<div style={{ color: "black", textAlign: "center", fontSize: 20, margin:"auto" }} ><Button className={classes.buttonLarge}  title={objkt.title} onClick={() => { window.open('https://www.hicetnunc.xyz/objkt/' + objkt.id); }}>{objkt.title}</Button></div>
+							<div style={{color: "black", textAlign: "right"}}>  <Button className={classes.buttonBuy} title={"size"} onClick={() => { setSize(0) }}>^</Button></div>
+						</div>}
+						{ objkt && objkt.mime === "video/mp4" && 
+							<video  width="100%" title={"Shell Sort"} autoPlay={true} muted controls controlsList="nodownload" loop  >
+								<source src={HashToURL( objkt.artifact_uri, 'IPFS')} type="video/mp4" />
+							</video>}
+						{ objkt && (objkt.mime === "image/jpeg" || objkt.mime === "image/gif") &&
+							<img src={HashToURL( objkt.artifact_uri, 'IPFS')} alt={objkt.title} width="340"  height="100%" ></img>
+						}
+
+						{objkt &&
+								<div style={{ color: "blue", pointerEvents: "auto", textAlign: "center" }}>
+									{sId != 0 && <Button className={classes.buttonBuy} title={"buy"} onClick={() => { collect(sId, sPrice) }}>{ Number(sPrice / 1000000)} tez BUY</Button>}
+                            		{sId === 0 && <Button className={classes.buttonBuy} title={"buy"} onClick={() => { collect(sId, sPrice) }}>Not Available</Button>}
+
+									<div>Total Sell Count: {sells}</div>
+									<div>Total Revenue: {revenue}</div>
+									<div>Token Holders: {objkt.token_holders.length}</div>
+
+                                    <br></br>
+									{objkt.trades.map((trade) => (
+										<>
+											{(activeAddress && (trade.seller.address === activeAddress || trade.buyer.address === activeAddress)) ?
+												<div style={{ paddingLeft: 1, textAlign: "left", color: "green" }}>
+													 {trade.seller.name ? 
+													<Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.xyz/' + trade.seller.name); }}>{trade.seller.name}</Button> 
+													: <Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.xyz/tz/' + trade.seller.address); }}>{trade.seller.address.slice(0, 6)} ... {trade.seller.address.slice(32, 36)}</Button>} 
+													 {" >>> "} {trade.buyer.name 
+													? <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.xyz/' + trade.buyer.name); }}>{trade.buyer.name}</Button> 
+													: <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.xyz/tz/' + trade.buyer.address); }}>{trade.buyer.address.slice(0, 6)} ... {trade.buyer.address.slice(32, 36)} </Button>} 
+													<div style={{  display:"flex", alignText: "center", paddingInline:6}}> 
+														<div style={{ textAlign: "left"}}>{trade.timestamp.slice(2, 10)}</div>
+														<div style={{ textAlign: "center", margin:"auto" }}>{trade.amount} ed.</div>
+														<div style={{ textAlign: "right"}}>{trade.swap.price / 1000000} tez</div>
+													</div>
+												</div>
+												:
+												<div style={{ paddingLeft: 1, textAlign: "left", color: "blue",  border: '1px dashed black' }}>
+													 {trade.seller.name ? 
+													<Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.xyz/' + trade.seller.name); }}>{trade.seller.name}</Button> 
+													: <Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.xyz/tz/' + trade.seller.address); }}>{trade.seller.address.slice(0, 6)} ... {trade.seller.address.slice(32, 36)}</Button>} 
+													 {" >>> "} {trade.buyer.name 
+													? <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.xyz/' + trade.buyer.name); }}>{trade.buyer.name}</Button> 
+													: <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.xyz/tz/' + trade.buyer.address); }}>{trade.buyer.address.slice(0, 6)} ... {trade.buyer.address.slice(32, 36)} </Button>} 
+													<div style={{  display:"flex", alignText: "center", paddingInline:6}}> 
+														<div style={{ textAlign: "left"}}>{trade.timestamp.slice(2, 10)}</div>
+														<div style={{ textAlign: "center", margin:"auto" }}>{trade.amount} ed.</div>
+														<div style={{ textAlign: "right"}}>{trade.swap.price / 1000000} tez</div>
+													</div>
+												</div>}</>
+									))}
+									minted {objkt.timestamp} {objkt.supply} ed. {objkt.royalties / 10}% royalties
+								</div>
+
+							}
+
+					</div>
+				)}
+				{/*type === 'objktStat' && (
 					<div style={{ width: 680, height: 500, backgroundColor: "white", overflowY: 'auto', border: '1px dashed black' }}>
 
 						{objkt && <div  >
@@ -673,7 +771,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 							}
 						</div>}
 					</div>
-				)}
+						)*/}
 				{type === 'gate' && subtype === 'top' && y != 2 &&(
 					<Button className={classes.buttonGate} onClick={() => { routeRoom(topRoom) }}>^</Button>
 				)}
@@ -686,13 +784,13 @@ export const BoardObject = (props: BoardObjectProps) => {
 				{type === 'gate' && subtype === 'right' && x != 2 &&(
 					<Button className={classes.buttonGate} onClick={() => { routeRoom(rightRoom) }}>{">"}</Button>
 				)}
-				{type === 'trash' && <div ref={drop} style = {{ border: '3px dashed black', width:100, height: 30, backgroundColor: "white", color: "black", textAlign: "center", fontSize: 20}}> Trash </div>}
-				{type === 'bgHolder' && <div ref={drop} style = {{ border: '3px dashed black', width:180, height: 30, backgroundColor: "white", color: "black", textAlign: "center", fontSize: 20}}> Background </div>}
-				{type === 'wallet' && <div ref={drop} style = {{ border: '3px dashed black', width:430, height: 30, backgroundColor: "white", color: "black", textAlign: "center", fontSize: 20}}> 
-				{address}
+				{type === 'trash' && <div ref={drop} style = {{ border: '3px dashed black', width:100, height: 130, backgroundColor: ((!isOver && canDrop)? "LightCoral" : (isOver && canDrop) ? "red" : "white" ), color: "black", textAlign: "center", fontSize: 20}}> Trash <br></br> <img  src={ (isOver && canDrop) ? trashOpenImage : trashImage } alt= { "walletimage" }  width= "100" height= "100"/> </div>}
+				{type === 'bgHolder' && <div ref={drop} style = {{ border: '3px dashed black', width:180, height: 30, backgroundColor:((!isOver && canDrop)? "YellowGreen" : (isOver && canDrop) ? "LawnGreen" : "white" ), color: "black", textAlign: "center", fontSize: 20}}> Background </div>}
+				{type === 'wallet' && <div ref={drop} style = {{ border: '3px dashed black', height: 130, backgroundColor: ((!isOver && canDrop)? "YellowGreen" : (isOver && canDrop) ? "LawnGreen" : "white" ), color: "black", textAlign: "center", fontSize: 20}}> 
+				<img  src={ (isOver && canDrop) ? walletReceiveImage : walletImage } alt= { "walletimage" }  width= "100" height= "100"/> <br></br> {domain ? domain : (address.slice(0, 6) + "..." + address.slice(32, 36))}
 				 </div>}
 			
-			</Paper>
+			</Paper>}
 
 			
 		</div>

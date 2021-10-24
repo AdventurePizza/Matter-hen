@@ -164,6 +164,7 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 		async (
 			roomName: string
 		): Promise<IFetchResponseBase & { data?: IChatRoom }> => {
+			console.log("getroom " + roomName);
 			const fetchRes = await fetchAuthenticated(`/room/${roomName}`, {
 				method: 'POST',
 				headers: {
@@ -173,7 +174,11 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 			});
 
 			if (fetchRes.ok) {
+
 				const roomData = (await fetchRes.json()) as IChatRoom;
+				if(roomData.command){
+					window.location.reload();
+				}
 				return { isSuccessful: true, data: roomData };
 			}
 

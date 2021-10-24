@@ -17,7 +17,7 @@ code {
 
 /* custom scrollbar */
 ::-webkit-scrollbar {
-	width: 20px;
+	width: 0px;
 	background-color: 'cyan';
 }
 
@@ -27,14 +27,16 @@ code {
 
 ::-webkit-scrollbar-thumb {
 	background-color: 'white';
-	border-radius: 20px;
-	border: 6px solid transparent;
+
+	border: 0px solid transparent;
 	background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
 	background-color: 'cyan';
 }
+
+
 
 @font-face {
 	font-family: 'Milkstore';

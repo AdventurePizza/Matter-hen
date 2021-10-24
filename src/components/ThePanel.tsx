@@ -452,13 +452,6 @@ const ThePanel = ({
 							onClick={() => {setActivePanel(panel.type); 
 								if(panel.type === "newroom"){onNewRoom()}
 								else if(panel.type === "home"){routeHome()}
-								/*else if(panel.type === "wallet"){
-									if(activeAccount)
-										routeRoom(activeAccount.address)
-									else{
-										sync();
-									}
-								}*/
 								else if(panel.type === "marketplace"){
 									pinMarketplace()
 								}
@@ -526,7 +519,13 @@ const ThePanel = ({
 					}
 				</div>
 				<div style={{ display: 'flex', width: 441 }}>
-					<Button className="app-btn" style={{ marginLeft: "auto", color: "black", fontFamily: "poxel-font" }} title={"Hic et Nunc (h=n)"}  onClick={async () => { await sync(); }} >{synced} </Button>
+					<Button className="app-btn" style={{ marginLeft: "auto", color: "black", fontFamily: "poxel-font" }} title={"Hic et Nunc (h=n)"}  onClick={async () => { 
+						if(activeAccount)
+							routeRoom(activeAccount.address)
+						else{
+							await sync();
+						}
+					}} >{synced} </Button>
 					{showUnsync && <Button className="app-btn" style={{  color: "black", fontFamily: "poxel-font"}} title={"Hic et Nunc (h=n)"} onClick={() => { unsync() }} >unsync </Button>}
 				</div>
 			</div>

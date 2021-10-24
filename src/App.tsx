@@ -1186,12 +1186,70 @@ function App() {
 
 	const addWallet = useCallback(async(address: string, walletKey?: string) => {
 		const { x, y } = generateRandomXY(true, true);
+		let addressXTZ, domain;
 
+		//if input is domain
+		if(address.includes(".tez" )){
+
+			domain = address;
+			await fetch('https://api.tezos.domains/graphql', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					query:  `
+							{
+								domain(name: "` + address + `") {
+									name
+									address
+								}
+							}
+							`,
+					variables: {
+					},
+				}
+				),
+				})
+				.then((res) => res.json())
+				.then((result) => {
+					console.log(result);
+					addressXTZ = result.data.domain.address;
+				});
+		}
+		else if(address.length === 36 ){
+			
+			addressXTZ = address;
+			await fetch('https://api.tezos.domains/graphql', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					query: `
+							{
+								reverseRecord(address: "`+ address +`"){owner domain{name}}
+							}
+							`,
+					variables: {
+					},
+				}
+				),
+				})
+				.then((res) => res.json())
+				.then((result) => {
+					console.log(result);	
+					if(result.data.reverseRecord)
+					domain = result.data.reverseRecord.domain.name;
+				});
+		}
+		console.log("doomain " + domain)
 		const newWallet: IBoardWallet = {
 			top: y,
 			left: x,
 			key: walletKey || uuidv4(),
-			address: address,
+			address: addressXTZ,
+			domain: domain,
 			isPinned: true,
 			type: "wallet"
 		}
@@ -2342,29 +2400,29 @@ function App() {
 	useEffect(() => {
 		const room = roomId || '0,0';
 
-		// if (isInvalidRoom === undefined) {
-		firebaseContext.getRoom(room).then((result) => {
-			if (result.isSuccessful) {
-				setIsInvalidRoom(false);
-				setRoomData(result.data);
-			} else {
-				setIsInvalidRoom(true);
-				if (result.message) {
-					//setModalErrorMessage(result.message);
-					setInvalidRoomMessage(result.message);
-				}
-			}
-			// if (result.data === null) {
-			// 	setIsInvalidRoom(true);
-			// } else {
-			// 	setIsInvalidRoom(false);
-			// }
-		});
-		// }
-		console.log("out")
+
 		if (!hasFetchedRoomPinnedItems) {
+			// if (isInvalidRoom === undefined) {
+			firebaseContext.getRoom(room).then((result) => {
+				if (result.isSuccessful) {
+					setIsInvalidRoom(false);
+					setRoomData(result.data);
+				} else {
+					setIsInvalidRoom(true);
+					if (result.message) {
+						//setModalErrorMessage(result.message);
+						setInvalidRoomMessage(result.message);
+					}
+				}
+				// if (result.data === null) {
+				// 	setIsInvalidRoom(true);
+				// } else {
+				// 	setIsInvalidRoom(false);
+				// }
+			});
+			// }
+
 			setHasFetchedRoomPinnedItems(true);
-			console.log("in")
 			firebaseContext.getPlaylist(room).then((playlist) => {
 				if (playlist.data)
 					setMusicPlayer((musicPlayer) => ({
