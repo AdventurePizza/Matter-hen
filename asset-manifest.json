@@ -1,8 +1,8 @@
 {
   "files": {
     "main.css": "/static/css/main.e2f4913b.chunk.css",
-    "main.js": "/static/js/main.d2461199.chunk.js",
-    "main.js.map": "/static/js/main.d2461199.chunk.js.map",
+    "main.js": "/static/js/main.3e7b2358.chunk.js",
+    "main.js.map": "/static/js/main.3e7b2358.chunk.js.map",
     "runtime-main.js": "/static/js/runtime-main.73c2b87e.js",
     "runtime-main.js.map": "/static/js/runtime-main.73c2b87e.js.map",
     "static/css/2.e650dc27.chunk.css": "/static/css/2.e650dc27.chunk.css",
@@ -64,9 +64,12 @@
     "static/media/stop_it_get_some_help.40c8f8ac.mp3": "/static/media/stop_it_get_some_help.40c8f8ac.mp3",
     "static/media/tiles.998ff831.jpg": "/static/media/tiles.998ff831.jpg",
     "static/media/tower.014c7ae6.svg": "/static/media/tower.014c7ae6.svg",
+    "static/media/trash.fd182e3c.png": "/static/media/trash.fd182e3c.png",
     "static/media/tree.b83e1b68.jpg": "/static/media/tree.b83e1b68.jpg",
     "static/media/triangles.eb213c56.png": "/static/media/triangles.eb213c56.png",
     "static/media/trumpet.3dbc0243.mp3": "/static/media/trumpet.3dbc0243.mp3",
+    "static/media/wallet.d2a0aaa1.png": "/static/media/wallet.d2a0aaa1.png",
+    "static/media/wallet_receive.2122b612.png": "/static/media/wallet_receive.2122b612.png",
     "static/media/water.d646a7d2.mp3": "/static/media/water.d646a7d2.mp3",
     "static/media/zombie.1ffe6a3c.svg": "/static/media/zombie.1ffe6a3c.svg"
   },
@@ -75,6 +78,6 @@
     "static/css/2.e650dc27.chunk.css",
     "static/js/2.f7154857.chunk.js",
     "static/css/main.e2f4913b.chunk.css",
-    "static/js/main.d2461199.chunk.js"
+    "static/js/main.3e7b2358.chunk.js"
   ]
 }
