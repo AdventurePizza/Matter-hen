@@ -2,13 +2,15 @@ import React, { useEffect, useRef } from 'react'
 import { IWaterfallMessage, newPanelTypes } from '../types';
 import { Box, Avatar } from '@material-ui/core';
 import { avatarMap } from './UserCursors';
+import { Button } from '@material-ui/core';
 
 interface IWaterfallChatProps {
 	chat: IWaterfallMessage[];
 	setActivePanel: (panel: newPanelTypes) => void;
+	routeRoom: (roomName: string) => void;
 }
 
-export const WaterfallChat = ({ chat, setActivePanel }: IWaterfallChatProps) => {
+export const WaterfallChat = ({ chat, setActivePanel, routeRoom }: IWaterfallChatProps) => {
 	const messagesEndRef = useRef<HTMLDivElement>(null)
 	const scrollToBottom = () => {
 		if(messagesEndRef && messagesEndRef.current){
@@ -28,13 +30,18 @@ export const WaterfallChat = ({ chat, setActivePanel }: IWaterfallChatProps) => 
 				e.stopPropagation();
 			}}> 
 <				Box color="black" mb={1} style={{width:320, fontSize: 20, textAlign: 'center', paddingBottom:5 }}> CHAT </Box>
-				<div style={{overflowY: 'scroll', maxHeight: 300}}>
+				<div style={{overflowY: 'scroll', maxHeight: 300,  border: '1px dashed black' }}>
 				{
 					chat.map((ch, index) =>
 						<div key={index.toString()} style={{ width: 300, clear: 'left'}}>
 							{
 								<Box color={boxColors[ch.avatar.charCodeAt(ch.avatar.length -1) % 4]}  mt={2} mb={2} style={{fontSize: 16 }}>
-									<Avatar alt= {ch.avatar} src= {!ch.avatar.startsWith("https") ? avatarMap[ch.avatar] : ch.avatar} style={{ float: 'left' }} />   <div style={{display:"flex" }}> <div style={{color:"black", paddingRight:10 }}>{ch.name + ": "} </div> {ch.message}</div>
+									<Avatar alt= {ch.avatar} src= {!ch.avatar.startsWith("https") ? avatarMap[ch.avatar] : ch.avatar} style={{ float: 'left' }} />   <div style={{display:"flex" }}> <div style={{color:"black", paddingRight:10 }}>
+										<Button title={ch.author} onClick={() => { if(ch.author) {routeRoom(ch.author)} }}>{ch.name + ": "}</Button>
+									</div>
+
+									{ch.message}
+									 </div>
 								</Box>
 							}
 						</div>

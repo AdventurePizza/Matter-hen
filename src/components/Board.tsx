@@ -26,7 +26,9 @@ import {
 	IBoardObjkt,
 	IBoardWallet,
 	ITrash,
-	IbgHolder
+	IbgHolder,
+	IUserProfile,
+	IBoardMessage
 } from '../types';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { IMusicNoteProps, MusicNote } from './MusicNote';
@@ -47,6 +49,7 @@ import { MapsContext } from '../contexts/MapsContext';
 import { Map } from './Maps';
 import YouTubeBackground from './YouTubeBackground';
 import { useEffect } from 'react';
+import {useLocation} from 'react-router-dom'
 
 interface IBoardProps {
 	videoId: string;
@@ -132,6 +135,11 @@ interface IBoardProps {
 	wallets: IBoardWallet[];
 	unpinWallet: (walletKey: string) => void;
 	updateWallets: (walletKey: string) => void;
+	userProfile: IUserProfile;
+	boardMessages: IBoardMessage[];
+	unpinMessage: (messageKey: string) => void;
+	setModalState: (modalState: string) => void;
+	setPreparedMessage: (message: IBoardMessage) => void;
 }
 
 
@@ -210,7 +218,12 @@ export const Board = ({
 	bgHolder,
 	wallets,
 	unpinWallet,
-	updateWallets
+	updateWallets,
+	userProfile,
+	boardMessages,
+	unpinMessage,
+	setModalState,
+	setPreparedMessage
 }: IBoardProps) => {
 	// const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
 	// 	'begin'
@@ -250,7 +263,8 @@ export const Board = ({
 	// 		return null;
 	// 	}
 	// };
-
+	const location = useLocation();
+	
 	const pausePlayVideo = () => {
 		if (isYouTubeShowing) {
 			setIsPaused(!isPaused);
@@ -269,7 +283,8 @@ export const Board = ({
 				const left = Math.round(item.left + delta.x);
 				const top = Math.round(item.top + delta.y);
 				console.log(item);
-				moveItem(item.itemType, item.id, left, top, delta.x, delta.y);
+				if(item.itemType != "gate")
+					moveItem(item.itemType, item.id, left, top, delta.x, delta.y);
 
 			}
 			return undefined;
@@ -281,6 +296,7 @@ export const Board = ({
 		videoId !== ''
 	);
 	const [isPaused, setIsPaused] = useState<boolean>(true);
+	const [showGates, setShowGates] = useState<boolean>(true);
 	// const [ volume, setVolume ] = useState<number>(0.4);
 
 	useEffect(() => {
@@ -294,6 +310,17 @@ export const Board = ({
 	useEffect(() => {
 		setIsPaused(false);
 	}, [videoId]);
+
+	useEffect(() => {
+		let x;
+		let y;
+		if(location.pathname.length != 1){
+			x = location.pathname.split("/")[2].split(",")[0];
+			y = location.pathname.split("/")[2].split(",")[1];
+		}
+		if(!y && x )
+			setShowGates(false);
+	})
 
 	return (
 		<div
@@ -353,6 +380,7 @@ export const Board = ({
 				chat={waterfallChat.messages}
 				top={waterfallChat.top}
 				left={waterfallChat.left}
+				routeRoom={routeRoom}
 			/>}
 
 			{!hideAllPins && <BoardObject
@@ -368,6 +396,7 @@ export const Board = ({
 				unpinObjkt={unpinObjkt}
 				unpinBackground={unpinBackground}
 				unpinWallet={unpinWallet}
+				unpinMessage={unpinMessage}
 			/>}
 
 			{!hideAllPins && <BoardObject
@@ -382,7 +411,21 @@ export const Board = ({
 				unpinGif={unpinGif}
 			/>}
 
-			{!hideAllPins && <BoardObject
+			{/*
+			!hideAllPins && <BoardObject
+				id={"message"}
+				type="message"
+				onPin={() => {}}
+				onUnpin={() => {}}
+				top={200}
+				left={300}
+				text={"message from X you should check this dddd"}
+				imgSrc={"https://lh3.googleusercontent.com/nv7aLvJsS5hp43QHB_AP4Szp62H3H4kOFfHsIVRpSFyK1BkMfV1JV6jcq0TUm1EJUrLcIKJ-QP5T_dRJ13YcVlf1ebXWJS7TxiTD-Q"}
+			/>
+			*/
+			}
+
+			{showGates && <BoardObject
 				id={"hist"}
 				type="gate"
 				subtype="top"
@@ -393,7 +436,7 @@ export const Board = ({
 				left={900}
 			/>}
 
-			{!hideAllPins &&<BoardObject
+			{showGates &&<BoardObject
 				id={"hist"}
 				type="gate"
 				subtype="left"
@@ -404,7 +447,7 @@ export const Board = ({
 				left={10}
 			/>}
 
-			{!hideAllPins &&<BoardObject
+			{showGates &&<BoardObject
 				id={"hist"}
 				type="gate"
 				subtype="bottom"
@@ -415,7 +458,7 @@ export const Board = ({
 				left={900}
 			/>}
 
-			{!hideAllPins &&<BoardObject
+			{showGates &&<BoardObject
 				id={"hist"}
 				type="gate"
 				subtype="right"
@@ -440,6 +483,39 @@ export const Board = ({
 
 			{!hideAllPins ? (
 				<TransitionGroup>
+					{boardMessages.map((bMessage) => (
+						<CSSTransition
+							key={bMessage.key}
+							timeout={10}
+							classNames="gif-transition"
+							onEntered={() => {
+
+							}}
+						>
+							<BoardObject
+								{...bMessage}
+								id={bMessage.key}
+								text={bMessage.message}
+								imgSrc={bMessage.imgSrc}
+								data={bMessage.data}
+								objktId={bMessage.objktId}
+								domain={bMessage.domain}
+								address={bMessage.address}
+								senderAddress={bMessage.senderAddress}
+								routeRoom={routeRoom}
+								type="message"
+								onPin={() => {
+								}}
+								onUnpin={() => {
+								}}
+							/>
+						</CSSTransition>
+					))}
+				</TransitionGroup>
+			) : null}
+
+			{!hideAllPins ? (
+				<TransitionGroup>
 					{wallets.map((wallet) => (
 						<CSSTransition
 							key={wallet.key}
@@ -459,6 +535,11 @@ export const Board = ({
 								}}
 								onUnpin={() => {
 								}}
+								routeRoom={routeRoom}
+								userProfile={userProfile}
+								unpinText={unpinText}
+								setModalState={setModalState}
+								setPreparedMessage={setPreparedMessage}
 							/>
 						</CSSTransition>
 					))}

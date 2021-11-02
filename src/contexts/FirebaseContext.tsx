@@ -67,6 +67,10 @@ export interface IFirebaseContext {
 		timestamp: string
 	) => Promise<IFetchResponseBase>;
 
+	deleteChat:(
+		roomName: string
+	) =>  Promise<IFetchResponseBase>;
+
 	//music player routes
 	getPlaylist:(
 		roomName: string
@@ -82,6 +86,7 @@ export interface IFirebaseContext {
 		timestamp: string
 	) => Promise<IFetchResponseBase>;
 	getRaces: () => Promise<IFetchResponseBase>;
+	getAllWallets: () => Promise<IFetchResponseBase & { data?: IWallet[] }>;
 }
 
 export const FirebaseContext = React.createContext<IFirebaseContext>({
@@ -102,10 +107,12 @@ export const FirebaseContext = React.createContext<IFirebaseContext>({
 	getImage: () => Promise.resolve({ isSuccessful: false }),
 	getChat: () => Promise.resolve({ isSuccessful: false }),
 	addtoChat: () => Promise.resolve({ isSuccessful: false }),
+	deleteChat: ()=> Promise.resolve({ isSuccessful: false }),
 	getPlaylist: () => Promise.resolve({ isSuccessful: false }),
 	addtoPlaylist: () => Promise.resolve({ isSuccessful: false }),
 	removefromPlaylist: () => Promise.resolve({ isSuccessful: false }),
-	getRaces: () => Promise.resolve({ isSuccessful: false })
+	getRaces: () => Promise.resolve({ isSuccessful: false }),
+	getAllWallets: () => Promise.resolve({ isSuccessful: false }),
 });
 
 const fetchBase =
@@ -498,7 +505,8 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 			message: string,
 			avatar: string,
 			name: string,
-			timestamp: string
+			timestamp: string,
+			author: string
 		): Promise<IFetchResponseBase> => {
 
 			const fetchRes = await fetchAuthenticated(`/room/${roomName}/addtoChat`, {
@@ -506,11 +514,34 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({ message, avatar, name, timestamp })
+				body: JSON.stringify({ message, avatar, name, timestamp, author })
 			});
 
 			if (fetchRes.ok) {
 				return { isSuccessful: true };
+			}
+
+			return { isSuccessful: false, message: fetchRes.statusText };
+		},
+		[fetchAuthenticated]
+	);
+
+	//clear chat
+	const deleteChat= useCallback(
+		async (
+			roomName: string
+		): Promise<IFetchResponseBase & { data?: IWaterfallMessage[] }> => {
+			const fetchRes = await fetchAuthenticated(`/room/${roomName}/deleteChat`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({accountAddress: (activeAccount ? activeAccount.address : "")})
+			});
+
+			if (fetchRes.ok) {
+				const messages = (await fetchRes.json());
+				return { isSuccessful: true, data: messages };
 			}
 
 			return { isSuccessful: false, message: fetchRes.statusText };
@@ -583,6 +614,20 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 		[fetchAuthenticated]
 	);
 
+	const getAllWallets = useCallback(async (): Promise<
+		IFetchResponseBase & { data?: IWallet[] }
+	> => {
+		const fetchRes = await fetchAuthenticated(`/room/wallets`, {
+			method: 'GET'
+		});
+
+		if (fetchRes.ok) {
+			const wallets = await fetchRes.json();
+			return { isSuccessful: true, data: wallets };
+		}
+
+		return { isSuccessful: false, message: fetchRes.statusText };
+	}, [fetchAuthenticated]);
 
 	return (
 		<FirebaseContext.Provider
@@ -604,10 +649,12 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 				getImage,
 				getChat,
 				addtoChat,
+				deleteChat,
 				getPlaylist,
 				addtoPlaylist,
 				removefromPlaylist,
-				getRaces
+				getRaces,
+				getAllWallets
 			}}
 		>
 			{children}

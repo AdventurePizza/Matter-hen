@@ -101,6 +101,6 @@
        	"parcel-bundler": "^1.9.7"
 	},
 	"homepage": "https://metaverses.fyi/",
-	"proxy": "https://matter-backend.herokuapp.com/"
+	"proxy": "http://localhost:8000"
 
 }

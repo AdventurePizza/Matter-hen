@@ -17,23 +17,23 @@ code {
 
 /* custom scrollbar */
 ::-webkit-scrollbar {
-	width: 0px;
-	background-color: 'cyan';
+	width: 10px;
+	background-color: 'black';
 }
 
 ::-webkit-scrollbar-track {
-	background-color: 'cyan';
+	background-color: 'black';
 }
 
 ::-webkit-scrollbar-thumb {
-	background-color: 'white';
+	background-color: 'black';
 
-	border: 0px solid transparent;
+	border: 10px solid black;
 	background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-	background-color: 'cyan';
+	background-color: 'black';
 }
 
 

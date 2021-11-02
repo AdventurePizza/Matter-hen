@@ -44,7 +44,8 @@ import {
 	IBoardObjkt,
 	ITrash,
 	IbgHolder,
-	IBoardWallet
+	IBoardWallet,
+	IBoardMessage
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip, Button } from '@material-ui/core';
@@ -84,6 +85,7 @@ import { FirebaseContext } from './contexts/FirebaseContext';
 import { GiphyFetch } from '@giphy/js-fetch-api';
 import { IMusicNoteProps } from './components/MusicNote';
 import { NewChatroom } from './components/NewChatroom';
+import { NewMessage } from './components/NewMessage';
 import { TowerDefense } from './components/TowerDefense';
 import _ from 'underscore';
 import { backgrounds } from './components/BackgroundImages';
@@ -103,7 +105,7 @@ import { MapsContext } from './contexts/MapsContext';
 import ReactPlayer from 'react-player';
 /* import { Login } from './components/Login'; */
 import { Login } from './components/Login';
-
+import { activeAccount } from './components/ThePanel';
 //import { DAppClient } from "@airgap/beacon-sdk";
 
 
@@ -222,7 +224,7 @@ function App() {
 	const firebaseContext = useContext(FirebaseContext);
 	const [isPanelOpen, setIsPanelOpen] = useState(true);
 	const [modalState, setModalState] = useState<
-		'new-room' | 'enter-room' | 'error' | 'success' | null
+		'new-room' | 'enter-room' | 'error' | 'send-message' | 'success' | null
 	>(null);
 	const [musicNotes, setMusicNotes] = useState<IMusicNoteProps[]>([]);
 	const [emojis, setEmojis] = useState<IEmoji[]>([]);
@@ -355,8 +357,11 @@ function App() {
 
 	const [wallets, setWallets] = useState<IBoardWallet[]>([]);
 
+	const [boardMessages, setBoardMessages] = useState<IBoardMessage[]>([]);
+
 	const [activePanel, setActivePanel] = useState<newPanelTypes>('empty');
 
+	const [preparedMessage, setPreparedMessage] = useState<IBoardMessage>();
 
 	useEffect(() => {
 		setHasFetchedRoomPinnedItems(false);
@@ -676,6 +681,27 @@ function App() {
 			setModalErrorMessage(result.message);
 		}
 	}, [roomId]);
+
+	const addMessage = useCallback((message) => {
+		console.log("koi");
+		const newMessage: IBoardMessage = {
+			top: message.top * window.innerHeight,
+			left: message.left * window.innerWidth,
+			key: message.messageKey,
+			message: message.text,
+			imgSrc: message.imgSrc,
+			data: message.data,
+			objktId: message.objktId,
+			address: message.address,
+			domain: message.domain,
+			receiverAddress: message.receiverAddress,
+			senderAddress: message.senderAddress,
+		};
+		console.log(message);
+		console.log("ikteru");
+		setBoardMessages((boardMessages) => boardMessages.concat(newMessage));
+		console.log("deva");
+	}, []);
 
 	// List of videos
 	const addVideo = useCallback((videoId: string | undefined) => {
@@ -1101,9 +1127,63 @@ function App() {
 						}
 					}
 					break;
+				case 'wallet':
+					const walletIndex = wallets.findIndex((wallet) => wallet.key === itemKey);
+					const wallet = wallets[walletIndex];
+					if (wallet) {
+						if (isUnpin) {
+							setWallets([
+								...wallets.slice(0, walletIndex),
+								...wallets.slice(walletIndex + 1)
+							]);
+						} else {
+							setWallets([
+								...wallets.slice(0, walletIndex),
+								{ ...wallet, isPinned: true },
+								...wallets.slice(walletIndex + 1)
+							]);
+						}
+					}
+					break;
+				case 'objkt':
+					const objktIndex = objkts.findIndex((objkt) => objkt.key === itemKey);
+					const objkt = objkts[objktIndex];
+					if (objkt) {
+						if (isUnpin) {
+							setObjkts([
+								...objkts.slice(0, objktIndex),
+								...objkts.slice(objktIndex + 1)
+							]);
+						} else {
+							setObjkts([
+								...objkts.slice(0, objktIndex),
+								{ ...objkt, isPinned: true },
+								...objkts.slice(objktIndex + 1)
+							]);
+						}
+					}
+					break;
+				case 'message':
+					const messageIndex = boardMessages.findIndex((boardMessage) => boardMessage.key === itemKey);
+					const boardMessage = boardMessages[messageIndex];
+					if (boardMessage) {
+						if (isUnpin) {
+							setBoardMessages([
+								...boardMessages.slice(0, messageIndex),
+								...boardMessages.slice(messageIndex + 1)
+							]);
+						} else {
+							setBoardMessages([
+								...boardMessages.slice(0, messageIndex),
+								{ ...boardMessage, isPinned: true },
+								...boardMessages.slice(messageIndex + 1)
+							]);
+						}
+					}
+					break;
 			}
 		},
-		[gifs, images, videos, pinnedText, NFTs, horses, tweets]
+		[gifs, images, videos, pinnedText, NFTs, horses, tweets, boardMessages, wallets, objkts]
 	);
 
 	const addRace = useCallback((id: string) => {
@@ -1243,7 +1323,6 @@ function App() {
 					domain = result.data.reverseRecord.domain.name;
 				});
 		}
-		console.log("doomain " + domain)
 		const newWallet: IBoardWallet = {
 			top: y,
 			left: x,
@@ -1419,9 +1498,23 @@ function App() {
 						]);
 					}
 					break;
+			case 'message':
+					const messageIndex = boardMessages.findIndex((message) => message.key === itemKey);
+					if (messageIndex !== -1) {
+						setBoardMessages([
+							...boardMessages.slice(0, messageIndex),
+							{
+								...boardMessages[messageIndex],
+								top: relativeTop,
+								left: relativeLeft
+							},
+							...boardMessages.slice(messageIndex + 1)
+						]);
+					}
+					break;
 			}
 		},
-		[images, videos, NFTs, gifs, pinnedText, tweets, horses, objkts, wallets]
+		[images, videos, NFTs, gifs, pinnedText, tweets, horses, objkts, wallets, boardMessages]
 	);
 
 	// const onBuy = async (orderId: string) => {
@@ -1632,6 +1725,12 @@ function App() {
 						updateWaterfallChat(message);
 					}
 					break;
+				case 'chat-clear':
+					setWaterfallChat((waterfallChat) => ({
+						...waterfallChat,
+						messages: []
+					}));
+					break;
 				case 'gif':
 					if (message.value) {
 						addGif(message.value, message.gifKey);
@@ -1748,6 +1847,7 @@ function App() {
 					handlePinItemMessage(message, true);
 					break;
 				case 'move-item':
+					console.log("come on");
 					handleMoveItemMessage(message);
 					break;
 				case 'clear-field':
@@ -1788,6 +1888,10 @@ function App() {
 						addHorse(message.value, message.horseKey);
 					}
 					break;
+				case 'message-dnd':
+						console.log("şio");
+						addMessage(message);
+					break;	
 				case 'marketplace':
 					setBackground({
 						name: '',
@@ -1892,7 +1996,8 @@ function App() {
 					key: 'chat',
 					value: chatValue,
 					avatar: userProfile.avatar,
-					name: userProfile.name
+					name: userProfile.name,
+					author: activeAccount ? activeAccount.address : ""
 				});
 				setUserProfile((profile) => ({ ...profile, message: chatValue }));
 				const timestamp = new Date().getTime().toString();
@@ -1901,16 +2006,26 @@ function App() {
 					chatValue,
 					userProfile.avatar,
 					userProfile.name,
-					timestamp
+					timestamp,
+					activeAccount ? activeAccount.address : ""
 				);
 				setWaterfallChat((waterfallChat) => ({
 					...waterfallChat,
 					messages: waterfallChat.messages.concat({
 						avatar: userProfile.avatar,
 						message: chatValue,
-						name: userProfile.name
+						name: userProfile.name,
+						author: activeAccount ? activeAccount.address : ""
 					})
 				}));
+				break;
+
+			case "chat-clear":
+				socket.emit('event', {
+					key: 'chat-clear'
+				});
+				console.log("bro");
+
 				break;
 			case 'chat-pin':
 				const chatPinValue = args[0] as string;
@@ -2385,6 +2500,7 @@ function App() {
 		isAccessLocked: boolean,
 		contractAddress?: string
 	) => {
+		console.log("create room")
 		const result = await firebaseContext.createRoom(
 			roomName,
 			isAccessLocked,
@@ -2394,6 +2510,43 @@ function App() {
 			setModalState(null);
 			history.push(`/room/${roomName}`);
 		}
+		return result;
+	};
+
+	const onSendMessage = async (
+		message: string
+	) => {
+		//setMessage
+
+		let x = Math.random() * 0.8;
+		let y = Math.random() * 0.8;
+		const result = await firebaseContext.pinRoomItem(preparedMessage.receiverAddress, {
+			...preparedMessage,
+			message: message,
+			type: 'message',
+			left: x,
+			top: y,
+		});
+
+		if (result.isSuccessful) {
+			setModalState(null);
+		}
+		console.log("sode");
+		socket.emit('event', {
+			key: 'message-dnd',
+			top: x,
+			left: y,
+			messageKey: preparedMessage.key,
+			text: message,
+			imgSrc: preparedMessage.imgSrc,
+			data: preparedMessage.data,
+			objktId: preparedMessage.objktId,
+			address: preparedMessage.address,
+			domain: preparedMessage.domain,
+			receiverAddress: preparedMessage.receiverAddress,
+			senderAddress: preparedMessage.senderAddress,
+		});
+		console.log("hadoru");
 		return result;
 	};
 
@@ -2438,7 +2591,7 @@ function App() {
 						messages: messages!.data!
 					}));
 			});
-
+			
 			firebaseContext.getRoomPinnedItems(room).then((pinnedItems) => {
 				if (!pinnedItems.data) return;
 
@@ -2452,13 +2605,14 @@ function App() {
 				const pinnedTweets: ITweet[] = [];
 				const pinnedObjkts: IBoardObjkt[] = [];
 				const pinnedWallets: IBoardWallet[] = [];
+				const pinnedMessages: IBoardMessage[] = [];
 
 				let backgroundType: 'image' | 'map' | 'race' | 'marketplace' | 'video' | undefined;
 				let backgroundImg: string | undefined;
 				let backgroundMap: IMap | undefined;
 				let backgroundVideo: string | undefined;
 				let backgroundRace: string | undefined;
-				
+
 				pinnedItems.data.forEach((item) => {
 					if (item.type === 'gif') {
 						pinnedGifs.push({
@@ -2550,6 +2704,16 @@ function App() {
 							key: item.key!,
 							address: item.address,
 						});
+					} else if (item.type === 'message') {
+						pinnedMessages.push({
+							...item,
+							top: item.top! * window.innerHeight,
+							left: item.left! * window.innerWidth,
+							isPinned: true,
+							key: item.key!,
+							message: item.message,
+							imgSrc: item.imgSrc
+						});
 					} 
 					else if (item.type === 'horse') {
 						getHorse(item.id).then((res) => {
@@ -2589,6 +2753,7 @@ function App() {
 							});
 						});
 					}
+					
 				});
 
 				setGifs(pinnedGifs);
@@ -2610,6 +2775,7 @@ function App() {
 				setRaces(pinnedRaces);
 				setObjkts(pinnedObjkts);
 				setWallets(pinnedWallets);
+				setBoardMessages(pinnedMessages)
 			});
 		}
 	}, [
@@ -3212,6 +3378,19 @@ function App() {
 					...wallets.slice(walletIndex + 1)
 				]);
 			}
+		} else if (type === 'message') {
+			const messageIndex = boardMessages.findIndex((message) => message.key === id);
+			if (messageIndex !== -1) {
+				setBoardMessages([
+					...boardMessages.slice(0, messageIndex),
+					{
+						...boardMessages[messageIndex],
+						top,
+						left
+					},
+					...boardMessages.slice(messageIndex + 1)
+				]);
+			}
 		}
 
 		if (type === 'chat') {
@@ -3369,6 +3548,19 @@ function App() {
 							...wallets.slice(walletIndex + 1)
 						]);
 					}
+				} else if (type === 'message') {
+					const messageIndex = boardMessages.findIndex((message) => message.key === id);
+					if (messageIndex !== -1) {
+						setBoardMessages([
+							...boardMessages.slice(0, messageIndex),
+							{
+								...boardMessages[messageIndex],
+								top,
+								left
+							},
+							...boardMessages.slice(messageIndex + 1)
+						]);
+					}
 				}
 
 				return;
@@ -3457,6 +3649,32 @@ function App() {
 					type: 'wallet',
 					itemKey: walletKey
 				});
+			} else if (message) {
+				setModalErrorMessage(message);
+			}
+		}
+	};
+
+	const unpinMessage = async (messageKey: string) => {
+		const index = boardMessages.findIndex((boardMessage) => boardMessage.key === messageKey); 
+		const boardMessage = boardMessages[index];
+		const room = roomId || '0,0';
+
+		if (boardMessage && boardMessage.isPinned) {
+			const { isSuccessful, message } = await firebaseContext.unpinRoomItem(
+				room,
+				boardMessage.key
+			);
+			if (isSuccessful) {
+				setBoardMessages([...boardMessages.slice(0, index), ...boardMessages.slice(index + 1)]);
+
+				
+				socket.emit('event', {
+					key: 'unpin-item',
+					type: 'message',
+					itemKey: messageKey
+				});
+				
 			} else if (message) {
 				setModalErrorMessage(message);
 			}
@@ -3659,6 +3877,12 @@ function App() {
 					wallets={wallets}
 					unpinWallet={unpinWallet}
 					updateWallets={setWallets}
+					userProfile={userProfile}
+					boardMessages={boardMessages}
+					updateBoardMessages={setBoardMessages}
+					unpinMessage={unpinMessage}
+					setModalState={setModalState}
+					setPreparedMessage={setPreparedMessage}
 				/>
 			</Route>
 
@@ -3808,6 +4032,12 @@ function App() {
 				open={!!modalState}
 			>
 				<>
+					{modalState === 'send-message' && (
+						<NewMessage
+							onClickCancel={() => setModalState(null)}
+							onSendMessage={onSendMessage}
+						/>
+					)}
 					{modalState === 'new-room' && (
 						<NewChatroom
 							onClickCancel={() => setModalState(null)}

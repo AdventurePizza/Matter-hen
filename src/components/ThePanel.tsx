@@ -184,11 +184,10 @@ const panels: IPanel[] =
 	[
 		{type: 'home', icon: homeIcon},
 		{type: 'chat'},
-		{type: 'google'},
-		{type: 'unsplash'},
-		{type: 'giphy'},
-		{type: 'objkt'}, 
-		{type: 'wallet'}, 
+		{type: '+image'}, 
+		{type: '+objkt'}, 
+		{type: '+wallet'}, 
+
 	] 
 const useStyles = makeStyles({
 	input: {
@@ -281,6 +280,8 @@ const ThePanel = ({
 	const classes = useStyles();
 	const [synced, setSynced] = useState('sync');
 	const [showUnsync, setShowUnsync] = useState(false);
+	const [activeSearch, setActiveSearch] = useState("google");
+
 
 	const googleSearch = async (textToSearch: string) => {
 		setLoading(true);
@@ -402,47 +403,119 @@ const ThePanel = ({
 				</div>
 			}
 
-			{(activePanel === 'google' || activePanel === 'unsplash') && 
-				<BackgroundPanel
-					sendImage={sendImage}
-					images={images}
-					setImages={setImages}
-					searchValue={text}
-					isGoogle={activePanel === 'google'}
-					isBackground={isBackground}
-					searchSubmit={searchSubmit}
-				/>
+			{activePanel === '+image' && 
+				<div  className="background-icon-list"  style={{ display: "flex"}}>
+					{
+						<div>						
+							{(activeSearch === 'google' || activeSearch === 'unsplash') && 
+							<BackgroundPanel
+								sendImage={sendImage}
+								images={images}
+								setImages={setImages}
+								searchValue={text}
+								isGoogle={activePanel === 'google'}
+								isBackground={isBackground}
+								searchSubmit={searchSubmit}
+							/>}
+							<div style={{ width: "100vw", overflowX: 'auto'}}>
+								{activeSearch === 'giphy' && 
+								<GiphyPanel
+									sendGif={sendGif} 
+									search={text}
+									isBackground={isBackground}
+									sendImage={sendImage} 
+								/>
+							}
+							 </div>
+							<div style={{ display: "flex",  justifyContent: "center", alignItems: "center"}}> 
+								<div style={{ alignSelf: "center"}}> Search by   
+
+									<IconButton
+										disabled= {activeSearch === "google"}
+										onClick={() => {setActiveSearch("google"); }} 
+									>
+										<img src={ googleIcon } alt= { "googleIcon" }  width= "30" height= "30"/> 
+									</IconButton>
+									<IconButton
+										disabled= {activeSearch === "unsplash"}
+										onClick={() => {setActiveSearch("unsplash"); }} 
+									>
+										<img src={ unsplashIcon } alt= { "unsplashIcon" }  width= "30" height= "30"/> 
+									</IconButton>
+									<IconButton
+										disabled= {activeSearch === "giphy"}
+										onClick={() => {setActiveSearch("giphy"); }}>
+										<img src={ giphyIcon } alt= { "giphyIcon" }  width= "30" height= "30"/> 
+									</IconButton>
+								</div>
+								<div style={{ paddingBlock: 5, paddingInline: 20, border: '1px dashed black' }}> 
+									<TextField
+										inputProps={{ className: classes.input }}
+										color="primary" focused
+										placeholder={"Search by " + activeSearch}
+										onChange={(e) => setText(e.target.value)}
+										onKeyPress={(e) => {
+												if(e.key === 'Enter'){
+													if(activeSearch === 'unsplash'){searchSubmit(text, setImages);} else if (activeSearch === 'google') {googleSearch(text);}
+												}
+											}
+										}
+										value={text}
+									/>
+								</div>
+								<IconButton
+									color="primary"
+									onClick={() => {if(activeSearch === 'unsplash'){searchSubmit(text, setImages);} else if (activeSearch === 'google') {googleSearch(text);}}}
+								>
+									<SearchIcon />
+								</IconButton>
+
+								{loading &&
+								<img
+									style={{
+										height: 8,
+										width: 30,
+										
+									}}
+									src={loadingDots}
+									alt="three dots"
+								/>
+								}
+
+
+							</div> 
+
+
+						</div>
+					}
+
+
+				</div>
+					
 			}
 
-			{activePanel === 'giphy' && 
-				<GiphyPanel
-					sendGif={sendGif} 
-					search={text}
-					isBackground={isBackground}
-					sendImage={sendImage} 
-				/>
-			}
 
 
 
 
-			{activePanel === 'objkt' &&
+
+			{activePanel === '+objkt' &&
 				<div  className="background-icon-list" >
-					<ObjktPanel sendObjkt= {sendObjkt} />
+					<ObjktPanel sendObjkt= {sendObjkt} activeAddress= {activeAccount.address} />
 				</div>
 			}
 			
 
-			{activePanel === 'wallet' &&
+			{activePanel === '+wallet' &&
 				<div  className="background-icon-list" >
 					<WalletPanel sendWallet= {sendWallet} />
 				</div>
 			}
 			
 			<div className="background-search-settings">
-				<Button className="app-btn" style={{ marginRight: "auto", color: "black", fontFamily: "poxel-font" }} title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, ishaan, kelly, taner, eric, anthony, maria`}  onClick={async () => { window.open('https://adventurenetworks.net/#/'); }} >Adventure Networks </Button>
+				<Button className="app-btn" style={{ color: "black", fontFamily: "poxel-font" }} title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, ishaan, kelly, taner, eric, anthony, maria`}  onClick={async () => { window.open('https://adventurenetworks.net/#/'); }} >Adventure Networks </Button>
 
-				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', fontFamily: "poxel-font" }} >
+				<div style={{ marginRight: "auto", display: 'flex', justifyContent: 'center', alignItems: 'center', fontFamily: "poxel-font" }} >
 
 					{//panel icon-buttons & special cases for newroom home & marketplace
 					panels.map((panel, index) => (
@@ -478,45 +551,6 @@ const ThePanel = ({
 						/>
 						</div>*/}
 
-					{//input for image searchs
-					(activePanel === 'unsplash' || activePanel === 'google' ||  activePanel === 'giphy' ) ? 
-						<div style={{ display: "flex"}}> 
-							<div style={{ paddingBlock: 5, paddingInline: 20, border: '1px dashed black' }}> 
-								<TextField
-									inputProps={{ className: classes.input }}
-									color="primary" focused
-									placeholder={"Search by " + activePanel}
-									onChange={(e) => setText(e.target.value)}
-									onKeyPress={(e) => {
-											if(e.key === 'Enter'){
-												if(activePanel === 'unsplash'){searchSubmit(text, setImages);} else if (activePanel === 'google') {googleSearch(text);}
-											}
-										}
-									}
-									value={text}
-								/>
-							</div>
-							<IconButton
-								color="primary"
-								onClick={() => {if(activePanel === 'unsplash'){searchSubmit(text, setImages);} else if (activePanel === 'google') {googleSearch(text);}}}
-							>
-								<SearchIcon />
-							</IconButton>
-
-						</div> : <div style={{ width: 252 }}> </div> 
-					}
-
-					{loading &&
-						<img
-							style={{
-								height: 8,
-								width: 30,
-								
-							}}
-							src={loadingDots}
-							alt="three dots"
-						/>
-					}
 				</div>
 				<div style={{ display: 'flex', width: 441 }}>
 					<Button className="app-btn" style={{ marginLeft: "auto", color: "black", fontFamily: "poxel-font" }} title={"Hic et Nunc (h=n)"}  onClick={async () => { 

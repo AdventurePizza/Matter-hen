@@ -76,6 +76,7 @@ export interface IMessageEvent {
 		| 'marketplace'
 		| 'change-playlist'
 		| 'clear-field'
+		| 'message'
 		| 'objkt';
 		
 	value?: any;
@@ -349,6 +350,7 @@ export interface IWaterfallMessage{
 	avatar: string;
 	message: string;
 	name: string;
+	author?: string;
 }
 
 export interface IWaterfallChat{
@@ -403,6 +405,25 @@ export interface IBoardWallet{
 	key: string;
 	isPinned?: boolean;
 	domain?: string;
+}
+
+export interface IWallet{
+	address: string;
+	domain?: string;
+}
+
+export interface IBoardMessage{
+	top: number;
+	left: number;
+	key: string;
+	message?: string;
+	imgSrc?: string;
+	data?: IGif;
+	objktId?: string;
+	address?: string;
+	domain?: string;
+	receiverAddress: string;
+	senderAddress?: string;
 }
 
 export type OrderWithMetadata = IOrder & { metadata?: INFTMetadata };

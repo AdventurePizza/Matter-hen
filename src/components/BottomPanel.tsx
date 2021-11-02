@@ -73,6 +73,7 @@ export interface IBottomPanelProps {
 	music?: IMetadata;
 	clearField: (field: string) => void;
 	routeRoom: (roomName: string) => void;
+	
 }
 
 

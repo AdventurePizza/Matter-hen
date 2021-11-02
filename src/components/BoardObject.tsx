@@ -13,7 +13,9 @@ import {
 	IHorse,
 	IPlaylist,
 	PanelItemEnum,
-	newPanelTypes
+	newPanelTypes,
+	IUserProfile,
+	IBoardMessage
 } from '../types';
 import { Order } from './NFT/Order';
 import { CustomToken as NFT } from '../typechain/CustomToken';
@@ -39,6 +41,8 @@ import walletImage from '../assets/buttons/wallet.png'
 import walletReceiveImage from '../assets/buttons/wallet_receive.png'
 import trashImage from '../assets/buttons/trash.png'
 import trashOpenImage from '../assets/buttons/trash_open.png'
+import { FirebaseContext } from '../contexts/FirebaseContext';
+import { v4 as uuidv4 } from 'uuid';
 
 const _ = require("lodash"); 
 const Tezos = new TezosToolkit('https://mainnet.api.tez.ie')
@@ -130,6 +134,7 @@ interface BoardObjectProps {
 	| 'trash'
 	| 'bgHolder'
 	| 'wallet'
+	| 'message'
 	| 'tweet';
 	data?: IGif;
 	imgSrc?: string;
@@ -172,8 +177,14 @@ interface BoardObjectProps {
 	pinBackground?: (imgSrc: string) => void;
 	unpinBackground?: () => void;
 	unpinWallet?: (walletKey: string) => void;
+	unpinMessage?: (messageKey: string) => void;
 	address?: string;
 	domain?: string;
+	userProfile?: IUserProfile;
+
+	senderAddress?: string;
+	setModalState?: (modalState: string) => void;
+	setPreparedMessage?: (message: IBoardMessage) => void;
 }
 
 export const BoardObject = (props: BoardObjectProps) => {
@@ -209,7 +220,12 @@ export const BoardObject = (props: BoardObjectProps) => {
 		pinBackground,
 		unpinBackground,
 		address,
-		domain
+		domain,
+		userProfile,
+		unpinMessage,
+		senderAddress,
+		setModalState,
+		setPreparedMessage
 	} = props;
 	const location = useLocation();
 	const [isHovering, setIsHovering] = useState(false);
@@ -227,21 +243,21 @@ export const BoardObject = (props: BoardObjectProps) => {
 	const classes = useStyles();
 
 	const { socket } = useContext(AppStateContext);
-
+	const firebaseContext = useContext(FirebaseContext);
 
 	let activeAddress = activeAccount ? activeAccount.address : "";
 	let leftRoom, rightRoom, topRoom, bottomRoom;
 	let x, y;
 
 	function isDropable(holding){
-		console.log("holding " + holding + " reporting " + type);
-		if(holding != "trash" && type === "trash" ){
+		//console.log("holding " + holding + " reporting " + type);
+		if(holding != "trash" && holding != "gate"  && type === "trash" ){
 			return true;
 		}
 		else if((holding === "image" || holding === "gif" ) && type === "bgHolder" ){
 			return true;
 		}
-		else if((holding === "objkt" ) && type === "wallet" ){
+		else if((holding === "objkt" || holding === "text" || holding === "image" || holding === "gif" || holding === "wallet") && type === "wallet" ){
 			return true;
 		}
 		else
@@ -275,6 +291,31 @@ export const BoardObject = (props: BoardObjectProps) => {
 					case "wallet":
 						unpinWallet(item.id);
 					break;
+					case "message":
+						unpinMessage(item.id);
+					break;
+
+					case "chat":
+						let x;
+						let y;
+						let room;
+						if(location.pathname.length != 1){
+							x = location.pathname.split("/")[2].split(",")[0];
+							y = location.pathname.split("/")[2].split(",")[1];
+						}
+						if(y){
+							room = x + "," + y;
+						}
+						else if(x)
+							room = x;
+						else
+							room = "0,0";
+						console.log ("room "+ room) 
+						firebaseContext.deleteChat(room);
+						socket.emit('event', {
+							key: 'chat-clear'
+						});
+					break;
 				}
 				return undefined;
 			}
@@ -290,7 +331,98 @@ export const BoardObject = (props: BoardObjectProps) => {
 			}
 			else if(type === "wallet"){
 				if(item.itemType === "objkt"){
+					setModalState("send-message")
+					const newMessage: IBoardMessage = {
+						top: y,
+						left: x,
+						key: uuidv4(),
+						objktId: item.objktId,
+						isPinned: true,
+						senderAddress: activeAccount ? activeAccount.address : null,
+						receiverAddress: address
+					};
+					setPreparedMessage(newMessage);
+					//add from firebase 
+					/*firebaseContext.pinRoomItem(address, {
+						...newMessage,
+						type: 'message',
+						left: Math.random() * 0.8,
+						top: Math.random() * 0.8,
+					});*/
 					transfer(item.objktId, activeAddress, address);
+
+				}
+				else if(item.itemType === "text"){
+					const timestamp = new Date().getTime().toString();
+					firebaseContext.addtoChat(address,
+						item.text,
+						userProfile.avatar,
+						userProfile.name,
+						timestamp,
+						activeAddress ? activeAddress : ""
+					);
+					socket.emit('event', {
+						key: 'chat-dnd',
+						value: item.text,
+						avatar: userProfile.avatar,
+						name: userProfile.name,
+						author: activeAddress ? activeAddress : "",
+						recRoom: address
+					});
+					unpinText(item.id);
+
+				}
+				else if(item.itemType === "image"){
+					console.log("send " + item.imgSrc  + " to " + address );
+					
+					//create message board object
+					setModalState("send-message")
+					const newMessage: IBoardMessage = {
+						top: y,
+						left: x,
+						key: uuidv4(),
+						imgSrc: item.imgSrc,
+						isPinned: true,
+						senderAddress: activeAccount ? activeAccount.address : null,
+						receiverAddress: address
+					};
+
+					setPreparedMessage(newMessage);
+			
+					//add socketing
+					//add messaging
+					//add room fetch
+					//pop up
+				}
+				else if(item.itemType === "gif"){
+					setModalState("send-message");
+					const newMessage: IBoardMessage = {
+						top: y,
+						left: x,
+						key: uuidv4(),
+						data: item.data,
+						isPinned: true,
+						senderAddress: activeAccount ? activeAccount.address : null,
+						receiverAddress: address
+
+					};
+
+					setPreparedMessage(newMessage);
+
+				}
+				else if(item.itemType === "wallet"){
+					setModalState("send-message");
+					const newMessage: IBoardMessage = {
+						top: y,
+						left: x,
+						key: uuidv4(),
+						address: item.address,
+						domain: item.domain,
+						isPinned: true,
+						senderAddress: activeAccount ? activeAccount.address : null,
+						receiverAddress: address
+					};
+					setPreparedMessage(newMessage);
 				}
 			}
 
@@ -393,7 +525,7 @@ export const BoardObject = (props: BoardObjectProps) => {
       }
 
 	useEffect(() => {
-		if (type === 'objktStat' || type === "objkt") {
+		if (objktId) {
 
 			async function fetchMyAPI() {
 
@@ -441,7 +573,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 	}, [])
 
 	useEffect(() => {
-		if (type === 'objktStat' || type === "objkt") {
+		if (objktId) {
 
 			async function fetchMyAPI() {
 
@@ -489,7 +621,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 	}, [])
 
 	useEffect(() => {
-		if (type === 'objktStat' || type === "objkt") {
+		if (objktId) {
 			const interval = setInterval(async () => {
 				let sellCount = 0;
 
@@ -520,7 +652,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 
 
 	const [{ isDragging }, drag, preview] = useDrag({
-		item: { id, left, top, itemType: type, type: 'item', imgSrc, data, objktId },
+		item: { id, left, top, itemType: type, type: 'item', imgSrc, data, objktId, text, address, domain },
 		collect: (monitor) => ({
 			isDragging: monitor.isDragging(),
 		})
@@ -624,6 +756,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 					<WaterfallChat
 						setActivePanel={setActivePanel}
 						chat={chat}
+						routeRoom={routeRoom}
 					/>
 				)}
 				{type === 'musicPlayer' && playlist && setActivePanel &&
@@ -653,8 +786,8 @@ export const BoardObject = (props: BoardObjectProps) => {
 							<video  width="100%" title={"Shell Sort"} autoPlay={true} muted controls controlsList="nodownload" loop  >
 								<source src={HashToURL( objkt.artifact_uri, 'IPFS')} type="video/mp4" />
 							</video>}
-						{ objkt && (objkt.mime === "image/jpeg" || objkt.mime === "image/gif") &&
-							<img src={HashToURL( objkt.artifact_uri, 'IPFS')} alt={objkt.title} width="340"  height="100%" ></img>
+						{ objkt && (objkt.mime != "video/mp4" ) &&
+							<img src={HashToURL( objkt.display_uri, 'IPFS')} alt={objkt.title} width="340"  height="100%" ></img>
 						}
 
 
@@ -676,8 +809,8 @@ export const BoardObject = (props: BoardObjectProps) => {
 							<video  width="100%" title={"Shell Sort"} autoPlay={true} muted controls controlsList="nodownload" loop  >
 								<source src={HashToURL( objkt.artifact_uri, 'IPFS')} type="video/mp4" />
 							</video>}
-						{ objkt && (objkt.mime === "image/jpeg" || objkt.mime === "image/gif") &&
-							<img src={HashToURL( objkt.artifact_uri, 'IPFS')} alt={objkt.title} width="340"  height="100%" ></img>
+						{ objkt && (objkt.mime != "video/mp4" ) &&
+							<img src={HashToURL( objkt.display_uri, 'IPFS')} alt={objkt.title} width="340"  height="100%" ></img>
 						}
 
 						{objkt &&
@@ -725,53 +858,145 @@ export const BoardObject = (props: BoardObjectProps) => {
 								</div>
 
 							}
-
 					</div>
 				)}
-				{/*type === 'objktStat' && (
-					<div style={{ width: 680, height: 500, backgroundColor: "white", overflowY: 'auto', border: '1px dashed black' }}>
 
-						{objkt && <div  >
-                            <div style={{display:"flex", alignItems: "center", paddingInline:6}} > 
-                            <div style={{color: "black", textAlign: "left"}}> {forSale}  / {objkt.supply}  </div>
-							<div style={{ color: "black", textAlign: "center", fontSize: 30, margin:"auto" }} ><Button className={classes.buttonLarge}  title={objkt.title} onClick={() => { window.open('https://www.hicetnunc.xyz/objkt/' + objkt.id); }}>{objkt.title}</Button></div>
-							<div style={{color: "black", textAlign: "right"}}>{ Number(sPrice / 1000000)} tez</div>
-                            </div>
-							{ objkt.mime === "video/mp4" && 
-								<video style={{ paddingLeft: 175 }} width="50%" title={"Shell Sort"} autoPlay={true} muted controls controlsList="nodownload" loop  >
-									<source src={HashToURL( objkt.artifact_uri, 'IPFS')} type="video/mp4" />
-								</video>}
-							{ (objkt.mime === "image/jpeg" || objkt.mime === "image/gif") &&
-								<img src={HashToURL( objkt.artifact_uri, 'IPFS')} style={{ paddingLeft: 175 }} alt={objkt.title} width="340" ></img>
-							}
+				{type === 'message' && ((imgSrc && (
+
+							<div style={{ width: 180, padding: 5 }}> 					 	 <div style={{  alignItems: "center" }}> 
+
+							<Button className={classes.text} onClick={() => { if(senderAddress) routeRoom(senderAddress) }}>
+								{senderAddress ? (senderAddress.slice(0, 6) + "..." + senderAddress.slice(32, 36) + ":") : "anon: "}
+							</Button>
+							
+							{text}  
+						</div>
+							<img alt="user-selected-img" src={imgSrc} style={{ width: 180, height: '100%' }} />
+							</div>
+						))
+					|| address &&
+					<div style={{ width: 180, padding: 5 }}> 					 	 <div style={{ alignItems: "center" }}> 
+					<Button className={classes.text} onClick={() => { if(senderAddress) routeRoom(senderAddress) }}>
+					{senderAddress ? (senderAddress.slice(0, 6) + "..." + senderAddress.slice(32, 36) + ":") : "anon: "}
+					</Button>
+					 {text}  
+				</div>
+					<div style = {{ border: '3px dashed black', height: 80, backgroundColor: ((!isOver && canDrop)? "YellowGreen" : (isOver && canDrop) ? "LawnGreen" : "white" ), color: "black", textAlign: "center", fontSize: 20}}> 
+						Send to<br></br> ------- <br></br> 
+							<Button className={classes.text} onClick={() => { routeRoom(address) }}>
+								{domain ? domain : (address.slice(0, 6) + "..." + address.slice(32, 36))}
+							</Button> 
+					</div>
+					 </div>
+					|| data &&
+					<div style={{ width: 180, padding: 5 }}>					 	 <div style={{ alignItems: "center" }}> 
+					<Button className={classes.text} onClick={() => { if(senderAddress) routeRoom(senderAddress) }}>
+					{senderAddress ? (senderAddress.slice(0, 6) + "..." + senderAddress.slice(32, 36) + ":") : "anon: "}
+					</Button>
+					 {text}  
+				</div>
+					 <Gif gif={data}  width={180} noLink={true} />
+					 </div>
+					 || objktId &&
+
+					 <div style={{ width: 340, padding: 5 }}> 
+					 	 <div style={{ alignItems: "center" }}>   
+							<Button className={classes.text} onClick={() => { if(senderAddress) routeRoom(senderAddress) }}>
+							{senderAddress ? (senderAddress.slice(0, 6) + "..." + senderAddress.slice(32, 36) + ":") : "anon: "}
+							</Button>
+							 {text}  
+						</div>
+					 { size === 0 && (
+					<div style={{ width: 340, backgroundColor: "white" , border: '1px dashed black'}}>
+                        {objkt && <div style={{display:"flex", alignItems: "center", paddingInline:6}} > 
+							<div style={{color: "black", textAlign: "left"}}> {forSale}  / {objkt.supply}  </div>
+							<div style={{ color: "black", textAlign: "center", fontSize: 20, margin:"auto" }} ><Button className={classes.buttonLarge}  title={objkt.title} onClick={() => { window.open('https://www.hicetnunc.xyz/objkt/' + objkt.id); }}>{objkt.title}</Button></div>
+							<div style={{color: "black", textAlign: "right"}}>  <Button className={classes.buttonGateBottom} title={"size"} onClick={() => { setSize(1) }}>^</Button></div>
+						</div>}
+						{ objkt && objkt.mime === "video/mp4" && 
+							<video  width="100%" title={"Shell Sort"} autoPlay={true} muted controls controlsList="nodownload" loop  >
+								<source src={HashToURL( objkt.artifact_uri, 'IPFS')} type="video/mp4" />
+							</video>}
+						{ objkt && (objkt.mime != "video/mp4" ) &&
+							<img src={HashToURL( objkt.display_uri, 'IPFS')} alt={objkt.title} width="340"  height="100%" ></img>
+						}
 
 
-							{
+                        <div style={{ color: "white", pointerEvents: "auto", textAlign: "center" }}>
+                            {sId != 0 && <Button className={classes.buttonBuy} title={"buy"} onClick={() => { collect(sId, sPrice) }}>{ Number(sPrice / 1000000)} tez BUY</Button>}
+                            {sId === 0 && <Button className={classes.buttonBuy} title={"buy"} onClick={() => { collect(sId, sPrice) }}>Not Available</Button>}
+
+                        </div>
+					</div>
+				)}
+				{ size === 1 && (
+					<div style={{ width: 340, maxHeight:400, overflowY: 'auto',  backgroundColor: "white" , border: '1px dashed black'}}>
+                        {objkt && <div style={{display:"flex", alignItems: "center", paddingInline:6}} > 
+							<div style={{color: "black", textAlign: "left"}}> {forSale}  / {objkt.supply}  </div>
+							<div style={{ color: "black", textAlign: "center", fontSize: 20, margin:"auto" }} ><Button className={classes.buttonLarge}  title={objkt.title} onClick={() => { window.open('https://www.hicetnunc.xyz/objkt/' + objkt.id); }}>{objkt.title}</Button></div>
+							<div style={{color: "black", textAlign: "right"}}>  <Button className={classes.buttonBuy} title={"size"} onClick={() => { setSize(0) }}>^</Button></div>
+						</div>}
+						{ objkt && objkt.mime === "video/mp4" && 
+							<video  width="100%" title={"Shell Sort"} autoPlay={true} muted controls controlsList="nodownload" loop  >
+								<source src={HashToURL( objkt.artifact_uri, 'IPFS')} type="video/mp4" />
+							</video>}
+						{ objkt && (objkt.mime != "video/mp4" ) &&
+							<img src={HashToURL( objkt.display_uri, 'IPFS')} alt={objkt.title} width="340"  height="100%" ></img>
+						}
+
+						{objkt &&
 								<div style={{ color: "blue", pointerEvents: "auto", textAlign: "center" }}>
+									{sId != 0 && <Button className={classes.buttonBuy} title={"buy"} onClick={() => { collect(sId, sPrice) }}>{ Number(sPrice / 1000000)} tez BUY</Button>}
+                            		{sId === 0 && <Button className={classes.buttonBuy} title={"buy"} onClick={() => { collect(sId, sPrice) }}>Not Available</Button>}
+
 									<div>Total Sell Count: {sells}</div>
 									<div>Total Revenue: {revenue}</div>
 									<div>Token Holders: {objkt.token_holders.length}</div>
-                                    {sId != 0 && <Button className={classes.buttonBuy} title={"buy"} onClick={() => { collect(sId, sPrice) }}>BUY</Button>}
-                                    {sId === 0 && <Button className={classes.buttonBuy} title={"buy"} onClick={() => { collect(sId, sPrice) }}>Not Available</Button>}
+
                                     <br></br>
 									{objkt.trades.map((trade) => (
 										<>
 											{(activeAddress && (trade.seller.address === activeAddress || trade.buyer.address === activeAddress)) ?
-												<div style={{ paddingLeft: 20, textAlign: "left", color: "green" }}>
-													trade {trade.timestamp.slice(0, 10)} from {trade.seller.name ? <Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.xyz/' + trade.seller.name); }}>{trade.seller.name}</Button> : <Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.xyz/tz/' + trade.seller.address); }}>{trade.seller.address.slice(0, 6)} ... {trade.seller.address.slice(32, 36)}</Button>} {trade.amount} ed. {trade.swap.price / 1000000} tez {trade.buyer.name ? <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.xyz/' + trade.buyer.name); }}>{trade.buyer.name}</Button> : <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.xyz/tz/' + trade.buyer.address); }}>{trade.buyer.address.slice(0, 6)} ... {trade.buyer.address.slice(32, 36)}</Button>}
+												<div style={{ paddingLeft: 1, textAlign: "left", color: "green" }}>
+													 {trade.seller.name ? 
+													<Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.xyz/' + trade.seller.name); }}>{trade.seller.name}</Button> 
+													: <Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.xyz/tz/' + trade.seller.address); }}>{trade.seller.address.slice(0, 6)} ... {trade.seller.address.slice(32, 36)}</Button>} 
+													 {" >>> "} {trade.buyer.name 
+													? <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.xyz/' + trade.buyer.name); }}>{trade.buyer.name}</Button> 
+													: <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.xyz/tz/' + trade.buyer.address); }}>{trade.buyer.address.slice(0, 6)} ... {trade.buyer.address.slice(32, 36)} </Button>} 
+													<div style={{  display:"flex", alignText: "center", paddingInline:6}}> 
+														<div style={{ textAlign: "left"}}>{trade.timestamp.slice(2, 10)}</div>
+														<div style={{ textAlign: "center", margin:"auto" }}>{trade.amount} ed.</div>
+														<div style={{ textAlign: "right"}}>{trade.swap.price / 1000000} tez</div>
+													</div>
 												</div>
 												:
-												<div style={{ paddingLeft: 20, textAlign: "left", color: "blue" }}>
-													trade {trade.timestamp.slice(0, 10)} from {trade.seller.name ? <Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.xyz/' + trade.seller.name); }}>{trade.seller.name}</Button> : <Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.xyz/tz/' + trade.seller.address); }}>{trade.seller.address.slice(0, 6)} ... {trade.seller.address.slice(32, 36)}</Button>} {trade.amount} ed. {trade.swap.price / 1000000} tez {trade.buyer.name ? <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.xyz/' + trade.buyer.name); }}>{trade.buyer.name}</Button> : <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.xyz/tz/' + trade.buyer.address); }}>{trade.buyer.address.slice(0, 6)} ... {trade.buyer.address.slice(32, 36)}</Button>}
+												<div style={{ paddingLeft: 1, textAlign: "left", color: "blue",  border: '1px dashed black' }}>
+													 {trade.seller.name ? 
+													<Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.xyz/' + trade.seller.name); }}>{trade.seller.name}</Button> 
+													: <Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.xyz/tz/' + trade.seller.address); }}>{trade.seller.address.slice(0, 6)} ... {trade.seller.address.slice(32, 36)}</Button>} 
+													 {" >>> "} {trade.buyer.name 
+													? <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.xyz/' + trade.buyer.name); }}>{trade.buyer.name}</Button> 
+													: <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.xyz/tz/' + trade.buyer.address); }}>{trade.buyer.address.slice(0, 6)} ... {trade.buyer.address.slice(32, 36)} </Button>} 
+													<div style={{  display:"flex", alignText: "center", paddingInline:6}}> 
+														<div style={{ textAlign: "left"}}>{trade.timestamp.slice(2, 10)}</div>
+														<div style={{ textAlign: "center", margin:"auto" }}>{trade.amount} ed.</div>
+														<div style={{ textAlign: "right"}}>{trade.swap.price / 1000000} tez</div>
+													</div>
 												</div>}</>
 									))}
 									minted {objkt.timestamp} {objkt.supply} ed. {objkt.royalties / 10}% royalties
 								</div>
 
 							}
-						</div>}
 					</div>
-						)*/}
+				)}
+
+					 </div>
+					 
+					 )
+				}
+				
 				{type === 'gate' && subtype === 'top' && y != 2 &&(
 					<Button className={classes.buttonGate} onClick={() => { routeRoom(topRoom) }}>^</Button>
 				)}
@@ -784,10 +1009,13 @@ export const BoardObject = (props: BoardObjectProps) => {
 				{type === 'gate' && subtype === 'right' && x != 2 &&(
 					<Button className={classes.buttonGate} onClick={() => { routeRoom(rightRoom) }}>{">"}</Button>
 				)}
-				{type === 'trash' && <div ref={drop} style = {{ border: '3px dashed black', width:100, height: 130, backgroundColor: ((!isOver && canDrop)? "LightCoral" : (isOver && canDrop) ? "red" : "white" ), color: "black", textAlign: "center", fontSize: 20}}> Trash <br></br> <img  src={ (isOver && canDrop) ? trashOpenImage : trashImage } alt= { "walletimage" }  width= "100" height= "100"/> </div>}
+				{type === 'trash' && <div ref={drop} style = {{ border: '3px dashed black', width:100, height: 30, backgroundColor: ((!isOver && canDrop)? "LightCoral" : (isOver && canDrop) ? "red" : "white" ), color: "black", textAlign: "center", fontSize: 20}}> Remove  </div>}
 				{type === 'bgHolder' && <div ref={drop} style = {{ border: '3px dashed black', width:180, height: 30, backgroundColor:((!isOver && canDrop)? "YellowGreen" : (isOver && canDrop) ? "LawnGreen" : "white" ), color: "black", textAlign: "center", fontSize: 20}}> Background </div>}
-				{type === 'wallet' && <div ref={drop} style = {{ border: '3px dashed black', height: 130, backgroundColor: ((!isOver && canDrop)? "YellowGreen" : (isOver && canDrop) ? "LawnGreen" : "white" ), color: "black", textAlign: "center", fontSize: 20}}> 
-				<img  src={ (isOver && canDrop) ? walletReceiveImage : walletImage } alt= { "walletimage" }  width= "100" height= "100"/> <br></br> {domain ? domain : (address.slice(0, 6) + "..." + address.slice(32, 36))}
+				{type === 'wallet' && <div ref={drop} style = {{ border: '3px dashed black', height: 80, backgroundColor: ((!isOver && canDrop)? "YellowGreen" : (isOver && canDrop) ? "LawnGreen" : "white" ), color: "black", textAlign: "center", fontSize: 20}}> 
+				 Send to<br></br> ------- <br></br> 
+				 	<Button className={classes.text} onClick={() => { routeRoom(address) }}>
+						  {domain ? domain : (address.slice(0, 6) + "..." + address.slice(32, 36))}
+					</Button> 
 				 </div>}
 			
 			</Paper>}
