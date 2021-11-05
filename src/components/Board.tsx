@@ -28,7 +28,8 @@ import {
 	ITrash,
 	IbgHolder,
 	IUserProfile,
-	IBoardMessage
+	IBoardMessage,
+	IMinter
 } from '../types';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { IMusicNoteProps, MusicNote } from './MusicNote';
@@ -131,6 +132,7 @@ interface IBoardProps {
 	updateObjkts: (objktKey: string) => void;
 	routeRoom: (roomName: string) => void;
 	trash: ITrash;
+	minter: IMinter;
 	bgHolder: IbgHolder;
 	wallets: IBoardWallet[];
 	unpinWallet: (walletKey: string) => void;
@@ -215,6 +217,7 @@ export const Board = ({
 	updateObjkts,
 	routeRoom,
 	trash,
+	minter,
 	bgHolder,
 	wallets,
 	unpinWallet,
@@ -400,6 +403,16 @@ export const Board = ({
 			/>}
 
 			{!hideAllPins && <BoardObject
+				id={"minter"}
+				type="minter"
+				onPin={() => {}}
+				onUnpin={() => {}}
+				top={minter.top}
+				left={minter.left}
+				setModalState={setModalState}
+			/>}
+
+			{!hideAllPins && <BoardObject
 				id={"bgHolder"}
 				type="bgHolder"
 				onPin={() => {}}
@@ -502,6 +515,7 @@ export const Board = ({
 								domain={bMessage.domain}
 								address={bMessage.address}
 								senderAddress={bMessage.senderAddress}
+								isWidget={bMessage.isWidget}
 								routeRoom={routeRoom}
 								type="message"
 								onPin={() => {

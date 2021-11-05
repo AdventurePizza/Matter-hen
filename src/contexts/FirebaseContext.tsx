@@ -55,6 +55,8 @@ export interface IFirebaseContext {
 	) => Promise<IFetchResponseBase>;
 	getImage:(query: string) => Promise<IFetchResponseBase>;
 
+	//mint: (query: string) => Promise<IFetchResponseBase>;
+	
 	getChat:(
 		roomName: string
 	) => Promise<IFetchResponseBase & { data?: IWaterfallMessage[] }>;
@@ -210,6 +212,23 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 		},
 		[fetchAuthenticated]
 	);
+
+	/*const mint = useCallback(
+		async (
+			query: string
+		): Promise<IFetchResponseBase> => {
+			const fetchRes = await fetchAuthenticated(`/google-image-search/mint/${query}`, {
+				method: 'GET'
+			});
+
+			if (fetchRes.ok) {
+				return { isSuccessful: true, message: await fetchRes.json() };
+			}
+
+			return { isSuccessful: false, message: fetchRes.statusText };
+		},
+		[fetchAuthenticated]
+	);*/
 
 	const createRoom = useCallback(
 		async (
@@ -647,6 +666,7 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 				getUser,
 				getUserRooms,
 				getImage,
+			//	mint,
 				getChat,
 				addtoChat,
 				deleteChat,

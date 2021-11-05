@@ -38,6 +38,7 @@ import { NFTPanel } from './NFT/NFTPanel';
 import { MapsPanel } from './MapsPanel';
 import { RacePanel } from './RacePanel';
 import { ObjktPanel } from './ObjktPanel';
+import { WidgetPanel } from './WidgetPanel';
 import { WalletPanel } from './WalletPanel';
 import { MusicPlayerPanel } from './MusicPlayerPanel';
 import { Chat } from './Chat';
@@ -187,7 +188,7 @@ const panels: IPanel[] =
 		{type: '+image'}, 
 		{type: '+objkt'}, 
 		{type: '+wallet'}, 
-
+		{type: '+widget'}, 
 	] 
 const useStyles = makeStyles({
 	input: {
@@ -495,10 +496,6 @@ const ThePanel = ({
 			}
 
 
-
-
-
-
 			{activePanel === '+objkt' &&
 				<div  className="background-icon-list" >
 					<ObjktPanel sendObjkt= {sendObjkt} activeAddress= {activeAccount.address} />
@@ -512,6 +509,12 @@ const ThePanel = ({
 				</div>
 			}
 			
+			{activePanel === '+widget' &&
+				<div  className="background-icon-list" >
+					<WidgetPanel sendObjkt= {sendObjkt} activeAddress= {activeAccount.address} />
+				</div>
+			}
+
 			<div className="background-search-settings">
 				<Button className="app-btn" style={{ color: "black", fontFamily: "poxel-font" }} title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, ishaan, kelly, taner, eric, anthony, maria`}  onClick={async () => { window.open('https://adventurenetworks.net/#/'); }} >Adventure Networks </Button>
 

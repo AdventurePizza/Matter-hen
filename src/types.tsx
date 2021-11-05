@@ -391,7 +391,10 @@ export interface ITrash{
 	top: number;
 	left: number;
 }
-
+export interface IMinter{
+	top: number;
+	left: number;
+}
 export interface IbgHolder{
 	top: number;
 	left: number;
@@ -424,6 +427,7 @@ export interface IBoardMessage{
 	domain?: string;
 	receiverAddress: string;
 	senderAddress?: string;
+	isWidget?: boolean;
 }
 
 export type OrderWithMetadata = IOrder & { metadata?: INFTMetadata };

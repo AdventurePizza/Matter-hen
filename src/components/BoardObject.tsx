@@ -132,6 +132,7 @@ interface BoardObjectProps {
 	| 'race'
 	| 'gate'
 	| 'trash'
+	| 'minter'
 	| 'bgHolder'
 	| 'wallet'
 	| 'message'
@@ -185,6 +186,7 @@ interface BoardObjectProps {
 	senderAddress?: string;
 	setModalState?: (modalState: string) => void;
 	setPreparedMessage?: (message: IBoardMessage) => void;
+	isWidget?:boolean;
 }
 
 export const BoardObject = (props: BoardObjectProps) => {
@@ -225,7 +227,8 @@ export const BoardObject = (props: BoardObjectProps) => {
 		unpinMessage,
 		senderAddress,
 		setModalState,
-		setPreparedMessage
+		setPreparedMessage,
+		isWidget
 	} = props;
 	const location = useLocation();
 	const [isHovering, setIsHovering] = useState(false);
@@ -254,10 +257,10 @@ export const BoardObject = (props: BoardObjectProps) => {
 		if(holding != "trash" && holding != "gate"  && type === "trash" ){
 			return true;
 		}
-		else if((holding === "image" || holding === "gif" ) && type === "bgHolder" ){
+		else if((holding === "image" || holding === "gif" ) && (type === "bgHolder" || type === "minter") ){
 			return true;
 		}
-		else if((holding === "objkt" || holding === "text" || holding === "image" || holding === "gif" || holding === "wallet") && type === "wallet" ){
+		else if((holding === "objkt" || holding === "objktStat" ||holding === "text" || holding === "image" || holding === "gif" || holding === "wallet") && type === "wallet" ){
 			return true;
 		}
 		else
@@ -329,8 +332,11 @@ export const BoardObject = (props: BoardObjectProps) => {
 					unpinGif(item.id);
 				}
 			}
+			else if(type === "minter"){
+				setModalState("mint-objkt")
+			}
 			else if(type === "wallet"){
-				if(item.itemType === "objkt"){
+				if(item.itemType === "objkt" || item.itemType === "objktStat"){
 					setModalState("send-message")
 					const newMessage: IBoardMessage = {
 						top: y,
@@ -339,7 +345,8 @@ export const BoardObject = (props: BoardObjectProps) => {
 						objktId: item.objktId,
 						isPinned: true,
 						senderAddress: activeAccount ? activeAccount.address : null,
-						receiverAddress: address
+						receiverAddress: address,
+						isWidget: (item.itemType === "objktStat")
 					};
 					setPreparedMessage(newMessage);
 					//add from firebase 
@@ -638,7 +645,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 						setobjkt(temp);
 					}
 
-					if ((objkt.token_holders.length !== temp.token_holders.length)) {
+					if (objkt && (objkt.token_holders.length !== temp.token_holders.length)) {
 						activateFireworks();
 						setobjkt(temp);
 						sellSound.play();
@@ -677,7 +684,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 				top,
 				left,
 				/* zIndex: isHovering ? 99999999 : 'auto' */
-				zIndex: (isHovering || type === 'chat' || type === 'gate'  || type === 'trash'  || type === 'bgHolder' ) ? 99999999 : 99999998
+				zIndex: (isHovering || type === 'chat' || type === 'gate'  || type === 'trash' || type === 'minter' || type === 'bgHolder' ) ? 99999999 : 99999998
 			}}
 			className={classes.container}
 			ref={drag}
@@ -775,6 +782,22 @@ export const BoardObject = (props: BoardObjectProps) => {
 						/>
 					</div>
 				)}
+				{type === 'objktStat' && size === 0 && objkt && (
+					<div style={{  maxHeight:400, padding: 10, overflowY: 'auto',  backgroundColor: "white" , border: '1px dashed black'}}>
+						<div style={{ border: '4px dashed black', alignItems: "center"}}>
+						        <iframe
+									scrolling="no"
+									width="307" 
+									height="307"
+									title="html-embed"
+									src={`${HashToURL( objkt.artifact_uri, 'IPFS')}/?creator=true&viewer=true&objkt=${objktId}`}
+									sandbox="allow-scripts allow-same-origin"
+									allow="accelerometer; camera; gyroscope; microphone; xr-spatial-tracking;"
+
+									/>
+						</div>
+					</div>
+				)}
 				{type === 'objkt' && size === 0 && (
 					<div style={{ width: 340, backgroundColor: "white" , border: '1px dashed black'}}>
                         {objkt && <div style={{display:"flex", alignItems: "center", paddingInline:6}} > 
@@ -786,18 +809,33 @@ export const BoardObject = (props: BoardObjectProps) => {
 							<video  width="100%" title={"Shell Sort"} autoPlay={true} muted controls controlsList="nodownload" loop  >
 								<source src={HashToURL( objkt.artifact_uri, 'IPFS')} type="video/mp4" />
 							</video>}
-						{ objkt && (objkt.mime != "video/mp4" ) &&
+						{ objkt && objkt.mime === "application/x-directory" && 
+								<div style={{  maxHeight:400, padding: 10, overflowY: 'auto',  backgroundColor: "white" , border: '1px dashed black'}}>
+								<div style={{ border: '4px dashed black', alignItems: "center"}}>
+										<iframe
+											scrolling="no"
+											width="307" 
+											height="307"
+											title="html-embed"
+											src={`${HashToURL( objkt.artifact_uri, 'IPFS')}/?creator=true&viewer=true&objkt=${objktId}`}
+											sandbox="allow-scripts allow-same-origin"
+											allow="accelerometer; camera; gyroscope; microphone; xr-spatial-tracking;"
+		
+											/>
+								</div>
+							</div>
+							}
+						{ objkt && (objkt.mime != "video/mp4" && objkt.mime != "application/x-directory" ) &&
 							<img src={HashToURL( objkt.display_uri, 'IPFS')} alt={objkt.title} width="340"  height="100%" ></img>
 						}
-
-
                         <div style={{ color: "white", pointerEvents: "auto", textAlign: "center" }}>
                             {sId != 0 && <Button className={classes.buttonBuy} title={"buy"} onClick={() => { collect(sId, sPrice) }}>{ Number(sPrice / 1000000)} tez BUY</Button>}
                             {sId === 0 && <Button className={classes.buttonBuy} title={"buy"} onClick={() => { collect(sId, sPrice) }}>Not Available</Button>}
 
                         </div>
 					</div>
-				)}
+				)
+				}
 				{type === 'objkt' && size === 1 && (
 					<div style={{ width: 340, maxHeight:400, overflowY: 'auto',  backgroundColor: "white" , border: '1px dashed black'}}>
                         {objkt && <div style={{display:"flex", alignItems: "center", paddingInline:6}} > 
@@ -809,11 +847,27 @@ export const BoardObject = (props: BoardObjectProps) => {
 							<video  width="100%" title={"Shell Sort"} autoPlay={true} muted controls controlsList="nodownload" loop  >
 								<source src={HashToURL( objkt.artifact_uri, 'IPFS')} type="video/mp4" />
 							</video>}
-						{ objkt && (objkt.mime != "video/mp4" ) &&
+							{ objkt && objkt.mime === "application/x-directory" && 
+								<div style={{  maxHeight:400, padding: 10, overflowY: 'auto',  backgroundColor: "white" , border: '1px dashed black'}}>
+								<div style={{ border: '4px dashed black', alignItems: "center"}}>
+										<iframe
+											scrolling="no"
+											width="307" 
+											height="307"
+											title="html-embed"
+											src={`${HashToURL( objkt.artifact_uri, 'IPFS')}/?creator=true&viewer=true&objkt=${objktId}`}
+											sandbox="allow-scripts allow-popups allow-same-origin"
+											allow="accelerometer; camera; gyroscope; microphone; xr-spatial-tracking;"
+		
+											/>
+								</div>
+							</div>
+							}
+						{ objkt && (objkt.mime != "video/mp4" && objkt.mime != "application/x-directory" ) &&
 							<img src={HashToURL( objkt.display_uri, 'IPFS')} alt={objkt.title} width="340"  height="100%" ></img>
 						}
 
-						{objkt &&
+						{objkt && !isWidget &&
 								<div style={{ color: "blue", pointerEvents: "auto", textAlign: "center" }}>
 									{sId != 0 && <Button className={classes.buttonBuy} title={"buy"} onClick={() => { collect(sId, sPrice) }}>{ Number(sPrice / 1000000)} tez BUY</Button>}
                             		{sId === 0 && <Button className={classes.buttonBuy} title={"buy"} onClick={() => { collect(sId, sPrice) }}>Not Available</Button>}
@@ -858,6 +912,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 								</div>
 
 							}
+							
 					</div>
 				)}
 
@@ -897,7 +952,31 @@ export const BoardObject = (props: BoardObjectProps) => {
 				</div>
 					 <Gif gif={data}  width={180} noLink={true} />
 					 </div>
-					 || objktId &&
+
+					||objkt &&  objktId && isWidget &&
+						<div style={{  maxHeight:400, padding: 10, overflowY: 'auto',  backgroundColor: "white" , border: '1px dashed black'}}>
+							<div style={{ alignItems: "center" }}>   
+							<Button className={classes.text} onClick={() => { if(senderAddress) routeRoom(senderAddress) }}>
+							{senderAddress ? (senderAddress.slice(0, 6) + "..." + senderAddress.slice(32, 36) + ":") : "anon: "}
+							</Button>
+							 {text}  
+						</div>
+							<div style={{ border: '4px dashed black', alignItems: "center"}}>
+								<iframe
+									scrolling="no"
+									width="307" 
+									height="307"
+									title="html-embed"
+									src={`${HashToURL( objkt.artifact_uri, 'IPFS')}/?creator=true&viewer=true&objkt=${objktId}`}
+									sandbox="allow-scripts allow-same-origin"
+									allow="accelerometer; camera; gyroscope; microphone; xr-spatial-tracking;"
+
+											/>
+								</div>
+						</div>
+
+
+					 || objkt &&  objktId && !isWidget &&
 
 					 <div style={{ width: 340, padding: 5 }}> 
 					 	 <div style={{ alignItems: "center" }}>   
@@ -1010,6 +1089,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 					<Button className={classes.buttonGate} onClick={() => { routeRoom(rightRoom) }}>{">"}</Button>
 				)}
 				{type === 'trash' && <div ref={drop} style = {{ border: '3px dashed black', width:100, height: 30, backgroundColor: ((!isOver && canDrop)? "LightCoral" : (isOver && canDrop) ? "red" : "white" ), color: "black", textAlign: "center", fontSize: 20}}> Remove  </div>}
+				{type === 'minter' && <div ref={drop} style = {{ border: '3px dashed black', width:100, height: 30, backgroundColor: ((!isOver && canDrop)? "YellowGreen" : (isOver && canDrop) ? "LawnGreen" : "white" ), color: "black", textAlign: "center", fontSize: 20}}> Minter  </div>}
 				{type === 'bgHolder' && <div ref={drop} style = {{ border: '3px dashed black', width:180, height: 30, backgroundColor:((!isOver && canDrop)? "YellowGreen" : (isOver && canDrop) ? "LawnGreen" : "white" ), color: "black", textAlign: "center", fontSize: 20}}> Background </div>}
 				{type === 'wallet' && <div ref={drop} style = {{ border: '3px dashed black', height: 80, backgroundColor: ((!isOver && canDrop)? "YellowGreen" : (isOver && canDrop) ? "LawnGreen" : "white" ), color: "black", textAlign: "center", fontSize: 20}}> 
 				 Send to<br></br> ------- <br></br> 

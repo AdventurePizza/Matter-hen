@@ -45,7 +45,8 @@ import {
 	ITrash,
 	IbgHolder,
 	IBoardWallet,
-	IBoardMessage
+	IBoardMessage,
+	IMinter
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip, Button } from '@material-ui/core';
@@ -86,6 +87,7 @@ import { GiphyFetch } from '@giphy/js-fetch-api';
 import { IMusicNoteProps } from './components/MusicNote';
 import { NewChatroom } from './components/NewChatroom';
 import { NewMessage } from './components/NewMessage';
+import { MintInfo } from './components/MintInfo';
 import { TowerDefense } from './components/TowerDefense';
 import _ from 'underscore';
 import { backgrounds } from './components/BackgroundImages';
@@ -113,12 +115,11 @@ import { activeAccount } from './components/ThePanel';
 //let activeAccount;
 
 const clipboardy = require('clipboardy');
-
+const { create, urlSource  } = require('ipfs-http-client')
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
 const GIF_FETCH = new GiphyFetch(API_KEY);
 const GIF_PANEL_HEIGHT = 150;
 const BOTTOM_PANEL_MARGIN_RATIO = 1.5;
-
 
 // const marketplaceSocket = io(config[configNetwork].marketplaceSocketURL, {
 // 	transports: ['websocket']
@@ -224,7 +225,7 @@ function App() {
 	const firebaseContext = useContext(FirebaseContext);
 	const [isPanelOpen, setIsPanelOpen] = useState(true);
 	const [modalState, setModalState] = useState<
-		'new-room' | 'enter-room' | 'error' | 'send-message' | 'success' | null
+		'new-room' | 'enter-room' | 'error' | 'send-message' | 'mint-objkt' | 'success' | null
 	>(null);
 	const [musicNotes, setMusicNotes] = useState<IMusicNoteProps[]>([]);
 	const [emojis, setEmojis] = useState<IEmoji[]>([]);
@@ -340,6 +341,11 @@ function App() {
 		top: 100,
 		left: 800,
 		img: "",
+	});
+
+	const [minter, setMinter] = useState<IMinter>({
+		top: 250,
+		left: 400
 	});
 
 	const [showWhiteboard, setShowWhiteboard] = useState<boolean>(false);
@@ -2492,9 +2498,38 @@ function App() {
 		},
 		[movingBoardItem, firebaseContext, roomId, socket]
 	);
+	/*
+	const mint=  async (tz, amount, cid, royalties) => {
+        // show feedback component with followind message and progress indicator
 
+        console.log(cid)
+
+        // call mint method
+        await Tezos.wallet
+          .at("KT1Hkg5qeNhfwpKW4fXvq7HGZB9z2EnmCCA9")
+          .then((c) =>
+            c.methods
+              .mint_OBJKT(
+                tz,
+                parseFloat(amount),
+                ('ipfs://' + cid)
+                  .split('')
+                  .reduce(
+                    (hex, c) =>
+                      (hex += c.charCodeAt(0).toString(16).padStart(2, '0')),
+                    ''
+                  ),
+                parseFloat(royalties) * 10
+              )
+              .send({ amount: 0, storageLimit: 310 })
+          )
+          .catch((err) => {
+            console.log(err)
+          })
+      }
+	*/
 	const onWhiteboardPanel = activePanel === 'chat' && showWhiteboard;
-
+	
 	const onCreateRoom = async (
 		roomName: string,
 		isAccessLocked: boolean,
@@ -2531,7 +2566,7 @@ function App() {
 		if (result.isSuccessful) {
 			setModalState(null);
 		}
-		console.log("sode");
+
 		socket.emit('event', {
 			key: 'message-dnd',
 			top: x,
@@ -2546,8 +2581,28 @@ function App() {
 			receiverAddress: preparedMessage.receiverAddress,
 			senderAddress: preparedMessage.senderAddress,
 		});
-		console.log("hadoru");
 		return result;
+	};
+	const onMint = async (
+		message: string
+	) => {
+		//read prepared Mint data
+		//mint it xd 
+		console.log("minting brrrrr " + message)
+
+		await firebaseContext.mint(message);
+
+        // process all other files
+        /*let nftCid = await prepareFile({
+			name: "test",
+			description: "desc",
+			tags: "tag",
+			address: "tz2DNkXjYmJwtYceizo3LwNVrqfrguWoqmBE",
+			mimeType: "image/jpg",
+		  })
+		mint(minterAddress, "1", nftCid.path, "10")
+		*/
+		return message;
 	};
 
 	useEffect(() => {
@@ -3411,6 +3466,12 @@ function App() {
 				top: top,
 				left: left
 			}));
+		} else if (type === 'minter') {
+			setMinter((minter) => ({
+				...minter,
+				top: top,
+				left: left
+			}));
 		} else if (type === 'bgHolder') {
 			setBgHolder((bgHolder) => ({
 				...bgHolder,
@@ -3873,6 +3934,7 @@ function App() {
 					updateObjkts={setObjkts}
 					routeRoom={routeRoom}
 					trash={trash}
+					minter={minter}
 					bgHolder={bgHolder}
 					wallets={wallets}
 					unpinWallet={unpinWallet}
@@ -4032,6 +4094,12 @@ function App() {
 				open={!!modalState}
 			>
 				<>
+					{modalState === 'mint-objkt' && (
+						<MintInfo
+							onClickCancel={() => setModalState(null)}
+							onMint={onMint}
+						/>
+					)}
 					{modalState === 'send-message' && (
 						<NewMessage
 							onClickCancel={() => setModalState(null)}

@@ -30,6 +30,7 @@
 		"fireworks-canvas": "^2.5.0",
 		"google-map-react": "^2.1.10",
 		"immutability-helper": "^3.1.1",
+		"ipfs-http-client": "^53.0.1",
 		"opensea-js": "^1.1.11",
 		"react": "^17.0.1",
 		"react-device-detect": "^2.0.1",
@@ -97,10 +98,9 @@
 		"@types/uuid": "^8.3.0",
 		"dotenv": "^10.0.0",
 		"prettier": "^2.2.1",
-		 "gh-pages": "^1.2.0",
-       	"parcel-bundler": "^1.9.7"
+		"gh-pages": "^1.2.0",
+		"parcel-bundler": "^1.9.7"
 	},
 	"homepage": "https://metaverses.fyi/",
-	"proxy": "http://localhost:8000"
-
+	"proxy": "https://matter-backend.herokuapp.com/"
 }
