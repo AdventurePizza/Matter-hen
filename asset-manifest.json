@@ -1,17 +1,18 @@
 {
   "files": {
-    "main.css": "/static/css/main.7c7907b3.chunk.css",
-    "main.js": "/static/js/main.2196d1fd.chunk.js",
-    "main.js.map": "/static/js/main.2196d1fd.chunk.js.map",
+    "main.css": "/static/css/main.3ae59949.chunk.css",
+    "main.js": "/static/js/main.b139d959.chunk.js",
+    "main.js.map": "/static/js/main.b139d959.chunk.js.map",
     "runtime-main.js": "/static/js/runtime-main.47d0f9ec.js",
     "runtime-main.js.map": "/static/js/runtime-main.47d0f9ec.js.map",
-    "static/js/2.5c758a06.chunk.js": "/static/js/2.5c758a06.chunk.js",
-    "static/js/2.5c758a06.chunk.js.map": "/static/js/2.5c758a06.chunk.js.map",
+    "static/js/2.34d7b7a7.chunk.js": "/static/js/2.34d7b7a7.chunk.js",
+    "static/js/2.34d7b7a7.chunk.js.map": "/static/js/2.34d7b7a7.chunk.js.map",
     "static/js/3.29528699.chunk.js": "/static/js/3.29528699.chunk.js",
     "static/js/3.29528699.chunk.js.map": "/static/js/3.29528699.chunk.js.map",
     "index.html": "/index.html",
-    "static/css/main.7c7907b3.chunk.css.map": "/static/css/main.7c7907b3.chunk.css.map",
-    "static/js/2.5c758a06.chunk.js.LICENSE.txt": "/static/js/2.5c758a06.chunk.js.LICENSE.txt",
+    "static/css/main.3ae59949.chunk.css.map": "/static/css/main.3ae59949.chunk.css.map",
+    "static/js/2.34d7b7a7.chunk.js.LICENSE.txt": "/static/js/2.34d7b7a7.chunk.js.LICENSE.txt",
+    "static/media/542098.15ef6c30.png": "/static/media/542098.15ef6c30.png",
     "static/media/HedgehogIdle.63fad345.gif": "/static/media/HedgehogIdle.63fad345.gif",
     "static/media/HedgehogIdle2.7be863f4.gif": "/static/media/HedgehogIdle2.7be863f4.gif",
     "static/media/HedgehogPoke.12070f75.gif": "/static/media/HedgehogPoke.12070f75.gif",
@@ -75,7 +76,6 @@
     "static/media/noice.e8d8ca99.mp3": "/static/media/noice.e8d8ca99.mp3",
     "static/media/nyancat_big.bf6fc23b.gif": "/static/media/nyancat_big.bf6fc23b.gif",
     "static/media/pepe-naruto.55a89bef.gif": "/static/media/pepe-naruto.55a89bef.gif",
-    "static/media/App.css": "/static/media/poxel-font.7d8478f1.woff2",
     "static/media/projectile.3544b7cc.svg": "/static/media/projectile.3544b7cc.svg",
     "static/media/push-pin.a91a2d22.svg": "/static/media/push-pin.a91a2d22.svg",
     "static/media/school-pride.d8c3281f.png": "/static/media/school-pride.d8c3281f.png",
@@ -93,8 +93,8 @@
   },
   "entrypoints": [
     "static/js/runtime-main.47d0f9ec.js",
-    "static/js/2.5c758a06.chunk.js",
-    "static/css/main.7c7907b3.chunk.css",
-    "static/js/main.2196d1fd.chunk.js"
+    "static/js/2.34d7b7a7.chunk.js",
+    "static/css/main.3ae59949.chunk.css",
+    "static/js/main.b139d959.chunk.js"
   ]
 }
