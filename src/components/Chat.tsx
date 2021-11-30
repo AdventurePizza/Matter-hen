@@ -22,7 +22,7 @@ const useStyles = makeStyles({
 		
 	},
 	input: {
-		fontFamily: "poxel-font",
+		fontFamily: "roboto",
 		color: "black",
 	}
 });
@@ -65,13 +65,18 @@ export const Chat = ({
 	};
 
 	const onKeyPressChat = (event: React.KeyboardEvent<HTMLInputElement>) => {
-		if (event.key === 'Enter') {
+		if (event.key === 'Enter' && event.shiftKey) {
+			//newline
+
+		}
+		else if (event.key === 'Enter') {
 			onButtonClickChat();
 		}
 	};
 
 	const onButtonClickChat = () => {
 		sendMessage(chatValue);
+		
 		clearMessage();
 	};
 
@@ -100,7 +105,7 @@ export const Chat = ({
 	return (
 		<div className={classes.container}>
 			<div className={classes.container}>
-				<div style={{ paddingBlock: 5, paddingInline: 20, border: '1px dashed black' }}>
+				<div style={{ paddingBlock: 5, paddingInline: 20 }}>
 					<TextField
 						inputProps={{ className: classes.input }}
 						autoFocus={window.innerWidth > 500}
@@ -113,6 +118,7 @@ export const Chat = ({
 						onKeyPress={onKeyPressChat}
 						className={classes.input}
 						onFocus={onFocus}
+						multiline
 					/>
 				</div>
 				<StyledButton onClick={onButtonClickChat}>send</StyledButton>

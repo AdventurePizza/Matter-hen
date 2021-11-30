@@ -46,7 +46,12 @@ import {
 	IbgHolder,
 	IBoardWallet,
 	IBoardMessage,
-	IMinter
+	IMinter,
+	IChecklist,
+	IPet,
+	ITrail,
+	ITrailObject,
+	IPlayer
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip, Button } from '@material-ui/core';
@@ -329,7 +334,18 @@ function App() {
 		top: 40,
 		left: 0,
 		messages: [],
-		show: true
+		show: true,
+		width: 330,
+		height: 350
+	});
+
+	const [trailObject, setTrailObject] = useState<ITrailObject>({
+		top: 400,
+		left: 100,
+		trail: [],
+		show: false,
+		width: 50,
+		height: 50
 	});
 
 	const [trash, setTrash] = useState<ITrash>({
@@ -346,6 +362,31 @@ function App() {
 	const [minter, setMinter] = useState<IMinter>({
 		top: 250,
 		left: 400
+	});
+
+	const [checklist, setChecklist] = useState<IChecklist>({
+		top: 0,
+		left: 0,
+		id: "checklist",
+		isVisible: roomId === "onboarding" ? true : false,
+		items: [
+			 {objective: "Sync your wallet", condition: false},  
+			 {objective: "Add an image via +image", condition: false},  
+			 {objective: "Move a board object by dragging", condition: false}, 
+			 {objective: "Resize a board object, by clicking bottom right corner of it", condition: false},
+			 {objective: "Remove a board object via dragging into \'remove\' ", condition: false},  
+			 {objective: "Set new background via dragging an image into  \'background\'", condition: false}, 
+			 {objective: "Remove the background by dragging \'background\' into \'remove\'", condition: false},
+			 {objective: "Sent a message using chat", condition: false},
+			 {objective: "Pin a text by using pin button in chat panel", condition: false},
+			 {objective: "Delete the chat by dragging into \'remove\'", condition: false},
+			 {objective: "Add an objkt using +Objkt", condition: false},
+			 {objective: "Add a widget using +widget", condition: false},
+			 {objective: "Add a Wallet using +Wallet", condition: false},
+			 {objective: "Sent a board object (image, objkt, widget, text, or wallet) by dragging it into wallet object", condition: false},
+			 {objective: "Go to your personal metaverse by clicking your wallet address at bottom right", condition: false},
+			 ]
+
 	});
 
 	const [showWhiteboard, setShowWhiteboard] = useState<boolean>(false);
@@ -368,6 +409,194 @@ function App() {
 	const [activePanel, setActivePanel] = useState<newPanelTypes>('empty');
 
 	const [preparedMessage, setPreparedMessage] = useState<IBoardMessage>();
+
+	const [pets, setPets] = useState<IPet[]>([]);
+
+	//const [player, setPlayer] = useState<IPlayer[]>([]);
+
+	const [catCount, setCatCount] = useState(0);
+
+
+	const query_objkt = `
+	query objkt($id: bigint!) {
+	  hic_et_nunc_token_by_pk(id: $id) {
+	id
+	mime
+	timestamp
+	display_uri
+	description
+	artifact_uri
+	metadata
+	creator {
+	  address
+	  name
+	}
+	thumbnail_uri
+	title
+	supply
+	royalties
+	swaps {
+	  amount
+	  amount_left
+	  id
+	  price
+	  timestamp
+	  creator {
+		address
+		name
+	  }
+	  contract_version
+	  status
+	  royalties
+	  creator_id
+	  is_valid
+	}
+	token_holders(where: {quantity: {_gt: "0"}}) {
+	  holder_id
+	  quantity
+	  holder {
+		name
+	  }
+	}
+	token_tags {
+	  tag {
+		tag
+	  }
+	}
+	trades(order_by: {timestamp: asc}) {
+	  amount
+	  swap {
+		price
+	  }
+	  seller {
+		address
+		name
+	  }
+	  buyer {
+		address
+		name
+	  }
+	  timestamp
+	}
+	}
+	}
+	`
+
+
+	useEffect(() => {
+
+		async function fetchGraphQL(operationsDoc, operationName, variables) {
+			let result = await fetch('https://hdapi.teztools.io/v1/graphql', {
+				method: 'POST',
+				body: JSON.stringify({
+					query: operationsDoc,
+					variables: variables,
+					operationName: operationName,
+				}),
+			})
+	
+			var ress = await result.json();
+			return ress;
+		}
+
+		async function fetchObjkt(id) {
+
+			const { errors, data } = await fetchGraphQL(query_objkt, 'objkt', {
+				id: id
+			})
+			if (errors) {
+				console.error(errors)
+			}
+			if(data){
+				const result = data.hic_et_nunc_token_by_pk
+				console.log(result);
+				//if its petshop show available pets
+				let address;
+				if(roomId === "petshop")
+					address = "tz2DNkXjYmJwtYceizo3LwNVrqfrguWoqmBE" 
+				else if(activeAccount)
+					address =activeAccount.address;
+				if(result)
+					for(let i = 0; i<result.token_holders.length; i++){
+						if(result.token_holders[i].holder_id === address){
+							return result.token_holders[i].quantity;
+						}
+					}
+					
+				else
+					return;
+			}
+	
+		}
+		setPets([]);
+		fetchObjkt(535951).then(function(result) {
+			for(let i=0; i<result; i++){
+				let top = Math.floor(Math.random() * 880 - 130);
+				let left = Math.floor(Math.random() * 1800);
+
+				const newPet: IPet = {
+					top: top,
+					left: left,
+					type: "fox",
+					key: uuidv4(),
+					target: {x:500, y:0},
+					hide: false
+				};
+				setPets((pets) => pets.concat(newPet))
+			}
+			
+		  })
+		  fetchObjkt(535914).then(function(result) {
+			for(let i=0; i<result; i++){
+				let top = Math.floor(Math.random() * 880 - 130);
+				let left = Math.floor(Math.random() * 1800);
+				const newPet: IPet = {
+					top: top,
+					left: left,
+					type: "cat",
+					key: uuidv4(),
+					target: {x:500, y:0},
+					hide: false
+				};
+				setPets((pets) => pets.concat(newPet))
+			}
+			
+		  })
+		  fetchObjkt(535951).then(function(result) {
+			for(let i=0; i<result; i++){
+				let top = Math.floor(Math.random() * 880 - 130);
+				let left = Math.floor(Math.random() * 1800);
+				const newPet: IPet = {
+					top: top,
+					left: left,
+					type: "hedgehog",
+					key: uuidv4(),
+					target: {x:500, y:0},
+					hide: false
+				};
+				setPets((pets) => pets.concat(newPet))
+			}
+			
+		  })
+
+		  /*fetchObjkt(535951).then(function(result) {
+			
+			let top = 600;
+			let left = 600;
+
+			const newPlayer: IPlayer = {
+				top: top,
+				left: left,
+				type: "fox",
+				key: uuidv4(),
+				attack: 5,
+				hitpoint: 10,
+				objktId: 535951
+			};
+			setPlayer(newPlayer);
+		  }
+		  )*/
+	}, [roomId]);
 
 	useEffect(() => {
 		setHasFetchedRoomPinnedItems(false);
@@ -576,6 +805,14 @@ function App() {
 		}));
 	}, []);
 
+	function markChecklist (index){
+		if(checklist.isVisible){
+			let items = checklist.items;
+			items[index].condition = true;
+			setChecklist({...checklist, items })
+		}
+	}
+
 	const handleChangePlaylist = useCallback(
 		(message: IMessageEvent) => {
 			const url = message.value.url;
@@ -633,7 +870,9 @@ function App() {
 				left: x,
 				key: gifKey || uuidv4(),
 				data: data.data,
-				isPinned: true
+				isPinned: true,
+				width: 180,
+				height: 130
 			};
 			setGifs((gifs) => gifs.concat(newGif));
 
@@ -663,15 +902,21 @@ function App() {
 			left: x,
 			key: imageKey || uuidv4(),
 			url: imageToUrl(image),
-			isPinned: true
+			isPinned: true,
+			width: 200,
+			height: 140
 		};
 		const room = roomId || '0,0';
 		setImages((images) => images.concat(newImage));
+		markChecklist(1);
+
 		const result = await firebaseContext.pinRoomItem(room, {
 			...newImage,
 			type: 'image',
 			left: newImage.left / window.innerWidth,
-			top: newImage.top / window.innerHeight
+			top: newImage.top / window.innerHeight,
+			width: newImage.width,
+			height: newImage.height
 		});
 
 
@@ -689,7 +934,7 @@ function App() {
 	}, [roomId]);
 
 	const addMessage = useCallback((message) => {
-		console.log("koi");
+
 		const newMessage: IBoardMessage = {
 			top: message.top * window.innerHeight,
 			left: message.left * window.innerWidth,
@@ -702,11 +947,13 @@ function App() {
 			domain: message.domain,
 			receiverAddress: message.receiverAddress,
 			senderAddress: message.senderAddress,
+			width: message.width,
+			height: message.height
 		};
 		console.log(message);
-		console.log("ikteru");
+
 		setBoardMessages((boardMessages) => boardMessages.concat(newMessage));
-		console.log("deva");
+
 	}, []);
 
 	// List of videos
@@ -739,6 +986,7 @@ function App() {
 
 			const relativeX = (x - 60) / width;
 			const relativeY = (y - 60) / height;
+
 
 			updateCursorPosition([relativeX, relativeY]);
 
@@ -983,6 +1231,7 @@ function App() {
 	const handlePinItemMessage = useCallback(
 		(message: IMessageEvent, isUnpin?: boolean) => {
 			const { type, itemKey } = message;
+
 			switch (type) {
 				case 'gif':
 					const gifIndex = gifs.findIndex((gif) => gif.key === itemKey);
@@ -1074,7 +1323,9 @@ function App() {
 								key: message.itemKey,
 								top: message.top * window.innerHeight,
 								left: message.left * window.innerWidth,
-								isPinned: true
+								isPinned: true,
+								width: 200,
+								height:40
 							}
 						}));
 					}
@@ -1255,7 +1506,9 @@ function App() {
 			key: objktKey || uuidv4(),
 			id: id,
 			isPinned: true,
-			type: objktType
+			type: objktType,
+			width: objktType === "objktStat" ? 330:200, 
+			height: 330,
 		}
 		setObjkts((objkts) => objkts.concat(newObjkt));
 
@@ -1265,9 +1518,16 @@ function App() {
 			...newObjkt,
 			type: objktType,
 			left: newObjkt.left / window.innerWidth,
-			top: newObjkt.top / window.innerHeight
+			top: newObjkt.top / window.innerHeight,
+			width: objktType === "objktStat" ? 330:200, 
+			height: 330,
 		});
-
+		if(objktType === "objkt"){
+			markChecklist(10);
+		}
+		else{
+			markChecklist(11);
+		}
 	}, [roomId]);
 
 	const addWallet = useCallback(async(address: string, walletKey?: string) => {
@@ -1347,6 +1607,7 @@ function App() {
 			left: newWallet.left / window.innerWidth,
 			top: newWallet.top / window.innerHeight
 		});
+		markChecklist(12);
 
 	}, [roomId]);
 
@@ -1440,6 +1701,27 @@ function App() {
 						left: relativeLeft
 					}));
 					break;
+				case 'trail':
+					setTrash((trail) => ({
+						...trail,
+						top: relativeTop,
+						left: relativeLeft
+					}));
+					break;
+				case 'trash':
+					setTrash((trash) => ({
+						...trash,
+						top: relativeTop,
+						left: relativeLeft
+					}));
+					break;
+				case 'bgHolder':
+					setBgHolder((bgHolder) => ({
+						...bgHolder,
+						top: relativeTop,
+						left: relativeLeft
+					}));
+					break;
 				case 'horse':
 					const horseIndex = horses.findIndex((horse) => horse.key === itemKey);
 					if (horseIndex !== -1) {
@@ -1476,6 +1758,7 @@ function App() {
 						left: relativeLeft
 					}));
 					break;
+				case 'objktStat':
 				case 'objkt':
 					const objktIndex = objkts.findIndex((objkt) => objkt.key === itemKey);
 					if (objktIndex !== -1) {
@@ -1522,6 +1805,127 @@ function App() {
 		},
 		[images, videos, NFTs, gifs, pinnedText, tweets, horses, objkts, wallets, boardMessages]
 	);
+
+	const handleResizeItemMessage = useCallback(
+		(message: IMessageEvent) => {
+			const { type, width, height, itemKey } = message;
+
+			switch (type) {
+				case 'image':
+					const imageIndex = images.findIndex((image) => image.key === itemKey);
+					const image = images[imageIndex];
+					if (image) {
+						setImages([
+							...images.slice(0, imageIndex),
+							{
+								...image,
+								width: width,
+								height: height
+							},
+							...images.slice(imageIndex + 1)
+						]);
+					}
+					break;
+
+				case 'gif':
+					const gifIndex = gifs.findIndex((gif) => gif.key === itemKey);
+					const gif = gifs[gifIndex];
+					if (gif) {
+						setGifs([
+							...gifs.slice(0, gifIndex),
+							{
+								...gif,
+								width: width,
+								height: height
+							},
+							...gifs.slice(gifIndex + 1)
+						]);
+					}
+					break;
+
+				case 'text':
+					const newPinnedText = { ...pinnedText };
+					if (newPinnedText[itemKey]) {
+						setPinnedText((pinnedText) => ({
+							...pinnedText,
+							[itemKey]: {
+								...pinnedText[itemKey],
+								width: width,
+								height: height
+							}
+						}));
+					}
+					break;
+				case 'chat':
+					setWaterfallChat((waterfallChat) => ({
+						...waterfallChat,
+						width: width,
+						height: height
+					}));
+					break;
+				case 'trash':
+					setTrash((trash) => ({
+						...trash,
+						width: width,
+						height: height
+					}));
+					break;
+				case 'bgHolder':
+					setBgHolder((bgHolder) => ({
+						...bgHolder,
+						width: width,
+						height: height
+					}));
+					break;
+				case 'objktStat':
+				case 'objkt':
+					const objktIndex = objkts.findIndex((objkt) => objkt.key === itemKey);
+					if (objktIndex !== -1) {
+						setObjkts([
+							...objkts.slice(0, objktIndex),
+							{
+								...objkts[objktIndex],
+								width: width,
+								height: height
+							},
+							...objkts.slice(objktIndex + 1)
+						]);
+					}
+					break;
+
+				case 'wallet':
+					const walletIndex = objkts.findIndex((wallet) => wallet.key === itemKey);
+					if (walletIndex !== -1) {
+						setObjkts([
+							...wallets.slice(0, walletIndex),
+							{
+								...wallets[walletIndex],
+								width: width,
+								height: height
+							},
+							...wallets.slice(walletIndex + 1)
+						]);
+					}
+					break;
+			case 'message':
+					const messageIndex = boardMessages.findIndex((message) => message.key === itemKey);
+					if (messageIndex !== -1) {
+						setBoardMessages([
+							...boardMessages.slice(0, messageIndex),
+							{
+								...boardMessages[messageIndex],
+								width: width,
+								height: height
+							},
+							...boardMessages.slice(messageIndex + 1)
+						]);
+					}
+					break;
+			}
+		},
+		[images, videos, NFTs, gifs, pinnedText, tweets, horses, objkts, wallets, boardMessages]
+	);
+
 
 	// const onBuy = async (orderId: string) => {
 	// 	if (!accountId) await signIn();
@@ -1853,8 +2257,12 @@ function App() {
 					handlePinItemMessage(message, true);
 					break;
 				case 'move-item':
-					console.log("come on");
 					handleMoveItemMessage(message);
+					break;
+				case 'resize-item':
+					console.log("workws");
+					console.log(message);
+					handleResizeItemMessage(message);
 					break;
 				case 'clear-field':
 					if (message.field === 'music') {
@@ -1975,6 +2383,7 @@ function App() {
 		roomId,
 		handlePinItemMessage,
 		handleMoveItemMessage,
+		handleResizeItemMessage,
 		addImage,
 		socket,
 		updateIsMapShowing,
@@ -1998,6 +2407,7 @@ function App() {
 				if (chatValue === '') {
 					return;
 				}
+				console.log("chat val " + chatValue )
 				socket.emit('event', {
 					key: 'chat',
 					value: chatValue,
@@ -2024,6 +2434,7 @@ function App() {
 						author: activeAccount ? activeAccount.address : ""
 					})
 				}));
+				markChecklist(7);
 				break;
 
 			case "chat-clear":
@@ -2044,6 +2455,7 @@ function App() {
 						isNew: true
 					});
 				}
+				markChecklist(8);
 				break;
 			case 'emoji':
 				const emoji = args[0] as IEmojiDict;
@@ -2474,7 +2886,9 @@ function App() {
 							top: y,
 							left: x,
 							key: itemKey,
-							value
+							value,
+							width: 200,
+							height: 40
 						}
 					);
 
@@ -2565,6 +2979,8 @@ function App() {
 
 		if (result.isSuccessful) {
 			setModalState(null);
+		}else{
+			console.log(result.message)
 		}
 
 		socket.emit('event', {
@@ -2580,7 +2996,10 @@ function App() {
 			domain: preparedMessage.domain,
 			receiverAddress: preparedMessage.receiverAddress,
 			senderAddress: preparedMessage.senderAddress,
+			width: preparedMessage.width,
+			height: preparedMessage.height,
 		});
+		markChecklist(13);
 		return result;
 	};
 	const onMint = async (
@@ -2638,13 +3057,23 @@ function App() {
 						playlist: playlist!.data!
 					}));
 			});
-
+			
 			firebaseContext.getChat(room).then((messages) => {
 				if (messages.data)
 					setWaterfallChat((waterfallChat) => ({
 						...waterfallChat,
-						messages: messages!.data!
+						messages: messages!.data!,
 					}));
+			});
+			
+			firebaseContext.getTrail(room).then((trail) => {
+				console.log(trail)
+				if (trail.data){
+					setTrailObject((trailObject) => ({
+						...trailObject,
+						trail: trail.data,
+					}));
+				}
 			});
 			
 			firebaseContext.getRoomPinnedItems(room).then((pinnedItems) => {
@@ -2676,7 +3105,9 @@ function App() {
 							left: item.left! * window.innerWidth,
 							isPinned: true,
 							key: item.key!,
-							data: item.data!
+							data: item.data!,
+							width: item.width,
+							height: item.height
 						});
 					} else if (item.type === 'image') {
 						pinnedImages.push({
@@ -2685,7 +3116,9 @@ function App() {
 							left: item.left! * window.innerWidth,
 							isPinned: true,
 							key: item.key!,
-							url: item.url
+							url: item.url,
+							width: item.width,
+							height: item.height
 						});
 					} else if (item.type === 'tweet') {
 						pinnedTweets.push({
@@ -2727,7 +3160,9 @@ function App() {
 							left: item.left! * window.innerWidth,
 							isPinned: true,
 							key: item.key!,
-							text: item.value
+							text: item.value,
+							width: item.width,
+							height: item.height
 						};
 					} else if (item.type === 'NFT') {
 						if (item.order && item.order.id) {
@@ -2748,7 +3183,9 @@ function App() {
 							isPinned: true,
 							key: item.key!,
 							id: item.id,
-							type: item.type
+							type: item.type,
+							width: item.width,
+							height: item.height
 						});
 					} else if (item.type === 'wallet') {
 						pinnedWallets.push({
@@ -2767,7 +3204,9 @@ function App() {
 							isPinned: true,
 							key: item.key!,
 							message: item.message,
-							imgSrc: item.imgSrc
+							imgSrc: item.imgSrc,
+							width: item.width,
+							height: item.height
 						});
 					} 
 					else if (item.type === 'horse') {
@@ -2807,10 +3246,44 @@ function App() {
 								id: item.id
 							});
 						});
-					}
+					} else if (item.type === 'chat' ) {
+						setWaterfallChat((waterfallChat) => ({
+							...waterfallChat,
+							top: item.top! * window.innerHeight,
+							left: item.left! * window.innerWidth,
+							width: item.width,
+							height: item.height
+						}));
+					} 
+					else if ( item.type === 'trash') {
+						setTrash((trash) => ({
+							...trash,
+							top: item.top! * window.innerHeight,
+							left: item.left! * window.innerWidth,
+						}));
+					} 
+					else if ( item.type === 'bgHolder') {
+						setBgHolder((bgHolder) => ({
+							...bgHolder,
+							top: item.top! * window.innerHeight,
+							left: item.left! * window.innerWidth,
+						}));
+					} else if (item.type === 'trail' ) {
+
+						setTrailObject((trailObject) => ({
+							...trailObject,
+							top: item.top! * window.innerHeight,
+							left: item.left! * window.innerWidth,
+							width: item.width,
+							height: item.height,
+							show: item.show,
+						}));
+					} 
 					
 				});
 
+
+				
 				setGifs(pinnedGifs);
 				setImages(pinnedImages);
 				setTweets(pinnedTweets);
@@ -3310,6 +3783,8 @@ function App() {
 	) => {
 		const { x, y } = getRelativePos(left, top, 0, 0);
 
+		markChecklist(2);
+
 		if (type === 'text') {
 			setPinnedText(
 				update(pinnedText, {
@@ -3447,10 +3922,16 @@ function App() {
 				]);
 			}
 		}
-
-		if (type === 'chat') {
+		else if (type === 'chat') {
 			setWaterfallChat((waterfallChat) => ({
 				...waterfallChat,
+				top: top,
+				left: left
+			}));
+		}
+		else if (type === 'trail') {
+			setTrailObject((trailObject) => ({
+				...trailObject,
 				top: top,
 				left: left
 			}));
@@ -3478,7 +3959,25 @@ function App() {
 				top: top,
 				left: left
 			}));
-		} else {
+		} 
+
+		if(type === 'pet'){
+			const petIndex = pets.findIndex((pet) => pet.key === id);
+			console.log("pet index " + petIndex)
+			if (petIndex !== -1) {
+				setPets([
+					...pets.slice(0, petIndex),
+					{
+						...pets[petIndex],
+						top: (top + deltaY),
+						left: (left + deltaX)
+					},
+					...pets.slice(petIndex + 1)
+				]);
+			}
+		}
+
+		else{
 			const {
 				isSuccessful,
 				message
@@ -3488,7 +3987,7 @@ function App() {
 				left: x,
 				key: id
 			});
-
+		
 			//reverse the changes in client in case has no permission to edit
 			if (!isSuccessful) {
 				if (message) {
@@ -3622,18 +4121,57 @@ function App() {
 							...boardMessages.slice(messageIndex + 1)
 						]);
 					}
-				}
+				}else if (type === 'chat') {
+					setWaterfallChat((waterfallChat) => ({
+						...waterfallChat,
+						top: top,
+						left: left
+					}));
+					
+				}else if (type === 'trail') {
+					setTrailObject((trailObject) => ({
+						...trailObject,
+						top: top,
+						left: left
+					}));
+				} else if (type === 'musicPlayer') {
+					setMusicPlayer((musicPlayer) => ({
+						...musicPlayer,
+						top: top,
+						left: left
+					}));
+				} else if (type === 'trash') {
+					setTrash((trash) => ({
+						...trash,
+						top: top,
+						left: left
+					}));
+				} else if (type === 'minter') {
+					setMinter((minter) => ({
+						...minter,
+						top: top,
+						left: left
+					}));
+				} else if (type === 'bgHolder') {
+					setBgHolder((bgHolder) => ({
+						...bgHolder,
+						top: top,
+						left: left
+					}));
+				} 
 
 				return;
-			}
+			
 		}
-		socket.emit('event', {
-			key: 'move-item',
-			type,
-			top: y,
-			left: x,
-			itemKey: id
-		});
+			socket.emit('event', {
+				key: 'move-item',
+				type,
+				top: y,
+				left: x,
+				itemKey: id
+			});
+
+		}
 	};
 
 	const pinObjkt = async (objktKey: string) => {
@@ -3945,6 +4483,18 @@ function App() {
 					unpinMessage={unpinMessage}
 					setModalState={setModalState}
 					setPreparedMessage={setPreparedMessage}
+					checklist={checklist}
+					setChecklist ={setChecklist}
+					roomId={roomId}
+					pets={pets}
+					setPets={setPets}
+					updateIsTyping={onIsTyping}
+					sendMessage={(message) => {
+						actionHandler('chat', message);
+					}}
+					trailObject={trailObject}
+					player={player}
+					setPlayer={setPlayer}
 				/>
 			</Route>
 
@@ -4006,23 +4556,7 @@ function App() {
 				)}
 			</div>
 
-			<Tooltip
-				title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, ishaan, kelly, taner, eric, anthony, maria`}
-				placement="left"
-			>
-				<a
-					href="https://adventurenetworks.net"
-					target="_blank"
-					rel="noreferrer"
-					className="adventure-logo"
-					style={{
-						visibility: isVideoShowing ? 'hidden' : 'visible'
-					}}
-				>
-					<div>adventure</div>
-					<div>networks</div>
-				</a>
-			</Tooltip>
+
 
 			<BottomPanel
 				bottomPanelRef={bottomPanelRef}
@@ -4076,7 +4610,11 @@ function App() {
 				clearField={(field) => actionHandler('clear-field', field)}
 				
 				routeRoom={routeRoom}
-
+				roomId={roomId}
+				checklist={checklist}
+				setChecklist ={setChecklist}
+				trailObject={trailObject}
+				setTrailObject={setTrailObject}
 			/>
 
 			{userProfile && background.type !== "marketplace" && (

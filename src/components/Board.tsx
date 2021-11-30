@@ -1,3 +1,4 @@
+// @ts-nocheck
 import './Board.css';
 
 import {
@@ -29,7 +30,11 @@ import {
 	IbgHolder,
 	IUserProfile,
 	IBoardMessage,
-	IMinter
+	IMinter,
+	IChecklist,
+	IPet,
+	ITrailObject,
+	IPlayer
 } from '../types';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { IMusicNoteProps, MusicNote } from './MusicNote';
@@ -37,7 +42,7 @@ import { XYCoord, useDrop } from 'react-dnd';
 
 import { BoardObject } from './BoardObject';
 import { PinButton } from './shared/PinButton';
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { UserCursors } from './UserCursors';
 import { backgrounds } from './BackgroundImages';
 import { ISubmit } from './NFT/OrderInput';
@@ -51,6 +56,9 @@ import { Map } from './Maps';
 import YouTubeBackground from './YouTubeBackground';
 import { useEffect } from 'react';
 import {useLocation} from 'react-router-dom'
+import {isMobile} from 'react-device-detect';
+import { activeAccount } from './ThePanel';
+
 
 interface IBoardProps {
 	videoId: string;
@@ -142,6 +150,15 @@ interface IBoardProps {
 	unpinMessage: (messageKey: string) => void;
 	setModalState: (modalState: string) => void;
 	setPreparedMessage: (message: IBoardMessage) => void;
+	checklist: IChecklist;
+	setChecklist: (message: IChecklist) => void;
+	pets: IPet[];
+	setPets: (pets: IPet[]) => void;
+	updateIsTyping: (isTyping: boolean) => void;
+	sendMessage: (message: string) => void;
+	trailObject: ITrailObject;
+	//player: IPlayer;
+	//setPlayer: (player: IPlayer) => void;
 }
 
 
@@ -226,52 +243,38 @@ export const Board = ({
 	boardMessages,
 	unpinMessage,
 	setModalState,
-	setPreparedMessage
+	setPreparedMessage,
+	checklist,
+	setChecklist,
+	pets,
+	setPets,
+	updateIsTyping,
+	sendMessage,
+	trailObject,
+	//player,
+	//setPlayer
 }: IBoardProps) => {
-	// const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
-	// 	'begin'
-	// );
-	// const [presentState, setPresentState] = useState<'begin' | 'appear' | 'end'>(
-	// 	'begin'
-	// );
 
-	// const renderPresent = () => {
-	// 	if (presentState === 'appear' || presentState === 'begin') {
-	// 		return (
-	// 			<button onClick={onClickPresent} className="board-present">
-	// 				<span>trychats tokens for you</span>
-	// 				<img alt="present" src={present} style={{ width: 100 }} />
-	// 			</button>
-	// 		);
-	// 	}
-	// 	// else if (introState === 'begin') {
-	// 	// 	return <button>hello</button>;
-	// 	// }
-	// 	else {
-	// 		return null;
-	// 	}
-	// };
 
-	// const renderIntro = () => {
-	// 	if (introState === 'appear') {
-	// 		return (
-	// 			<button onClick={onClickNewRoom} className="board-intro">
-	// 				<span>create new room</span>
-	// 				<img alt="shark" src={introShark} style={{ width: 100 }} />
-	// 			</button>
-	// 		);
-	// 	} else if (introState === 'begin') {
-	// 		return <button>hello</button>;
-	// 	} else {
-	// 		return null;
-	// 	}
-	// };
 	const location = useLocation();
-	
-	const pausePlayVideo = () => {
-		if (isYouTubeShowing) {
-			setIsPaused(!isPaused);
-		}
+
+	const petPoked = () => {
+		
+			let newPets = pets;
+			console.log(newPets);
+			console.log("hidepets");
+			
+			for(let i=0; i< newPets.length; i++){
+				for(let j=0; j< images.length && i< newPets.length; j++){
+					console.log("hide pet " + i);
+					newPets[i].target.x = images[j].left+ Math.random() * (2);
+					newPets[i].target.y = images[j].top;
+					newPets[i].hide = true;
+					++i;
+				}
+			}
+			setPets(newPets);
+		
 	};
 
 	const backgroundImg = background.name?.startsWith('http')
@@ -288,6 +291,7 @@ export const Board = ({
 				console.log(item);
 				if(item.itemType != "gate")
 					moveItem(item.itemType, item.id, left, top, delta.x, delta.y);
+				
 
 			}
 			return undefined;
@@ -300,7 +304,7 @@ export const Board = ({
 	);
 	const [isPaused, setIsPaused] = useState<boolean>(true);
 	const [showGates, setShowGates] = useState<boolean>(true);
-	// const [ volume, setVolume ] = useState<number>(0.4);
+
 
 	useEffect(() => {
 		if (isMapShowing) {
@@ -315,6 +319,10 @@ export const Board = ({
 	}, [videoId]);
 
 	useEffect(() => {
+		petPoked();
+	}, [pets]);
+
+	useEffect(() => {
 		let x;
 		let y;
 		if(location.pathname.length != 1){
@@ -324,6 +332,7 @@ export const Board = ({
 		if(!y && x )
 			setShowGates(false);
 	})
+
 
 	return (
 		<div
@@ -337,40 +346,18 @@ export const Board = ({
 			ref={drop}
 			onClick={()=>{setActivePanel("empty")}}
 		>
-			{(background.type === 'map' || isMapShowing) && <Map mapData={background.mapData} />}
 
 
-			{background.type === 'race' && (
-				<iframe
-					src={`https://3d-racing.zed.run/live/${background.raceId}`}
-					width="100%"
-					height="100%"
-					title="zed racing"
-					style={{ pointerEvents: 'auto' }}
-				/>
-			)}
-
-			{background.type === 'marketplace' && (
-				<iframe
-					className="opensea-listings"
-					title="Opensea Listings"
-					src="https://opensea.io/assets?embed=true"
-					width="100%"
-					height="100%"
-				></iframe>
-			)}
-
-			{background.type === 'video' && <YouTubeBackground
-				isVideoPinned={isVideoPinned}
-				lastTime={lastTime}
-				videoId={videoId}
-				isPaused={isPaused}
-				volume={volume}
-				isYouTubeShowing={isYouTubeShowing}
-				pausePlayVideo={pausePlayVideo}
-				onPinVideo={addVideo}
-				unpinVideo={unpinVideo}
-				videoRef={videoRef}
+			{checklist.isVisible &&<BoardObject
+				id={'checklist'}
+				type="checklist"
+				onPin={() => {}}
+				onUnpin={() => {}}
+				checklist={checklist}
+				setChecklist={setChecklist}
+				top={checklist.top}
+				left={checklist.left}
+				
 			/>}
 
 			{!hideAllPins && waterfallChat.show &&<BoardObject
@@ -383,6 +370,23 @@ export const Board = ({
 				chat={waterfallChat.messages}
 				top={waterfallChat.top}
 				left={waterfallChat.left}
+				routeRoom={routeRoom}
+				updateIsTyping={updateIsTyping}
+				sendMessage={sendMessage}
+				initWidth={waterfallChat.width}
+				initHeight={waterfallChat.height}
+			/>}
+
+			{!hideAllPins && trailObject.show &&<BoardObject
+				id={'trail'}
+				type="trail"
+				onPin={() => {}}
+				onUnpin={() => {}}
+				trail={trailObject.trail}
+				top={trailObject.top}
+				left={trailObject.left}
+				initWidth={trailObject.width}
+				initHeight={trailObject.height}
 				routeRoom={routeRoom}
 			/>}
 
@@ -400,18 +404,52 @@ export const Board = ({
 				unpinBackground={unpinBackground}
 				unpinWallet={unpinWallet}
 				unpinMessage={unpinMessage}
+				checklist={checklist}
+				setChecklist={setChecklist}
 			/>}
 
-			{!hideAllPins && <BoardObject
-				id={"minter"}
-				type="minter"
-				onPin={() => {}}
-				onUnpin={() => {}}
-				top={minter.top}
-				left={minter.left}
-				setModalState={setModalState}
-			/>}
+			{/*player && <BoardObject
+				id={"player"}
+				type="player"
+				top={player.top}
+				left={player.left}
+				player={player}
+				setPlayer={setPlayer}
+			/>*/}
 
+
+
+			{!hideAllPins ? (
+				<TransitionGroup>
+					{pets.map((pet) => (
+						<CSSTransition
+							key={pet.key}
+							timeout={10}
+							classNames="gif-transition"
+							onEntered={() => {
+
+							}}
+						>
+							<BoardObject
+								id={pet.key}
+								type="pet"
+								onPin={() => {}}
+								onUnpin={() => {}}
+								top={pet.top}
+								left={pet.left}
+								subtype={pet.type}
+								hide={pet.hide}
+								targetX={pet.target.x}
+								targetY={pet.target.y}
+								petPoked={petPoked}
+							/>
+						</CSSTransition>
+					))}
+				</TransitionGroup>
+			) : null}
+
+
+			
 			{!hideAllPins && <BoardObject
 				id={"bgHolder"}
 				type="bgHolder"
@@ -422,6 +460,8 @@ export const Board = ({
 				pinBackground={pinBackground}
 				unpinImage={unpinImage}
 				unpinGif={unpinGif}
+				checklist={checklist}
+				setChecklist={setChecklist}
 			/>}
 
 			{/*
@@ -522,6 +562,10 @@ export const Board = ({
 								}}
 								onUnpin={() => {
 								}}
+								initWidth={ bMessage.width}
+								initHeight={bMessage.height}		
+								checklist={checklist}
+								setChecklist={setChecklist}	
 							/>
 						</CSSTransition>
 					))}
@@ -583,154 +627,17 @@ export const Board = ({
 								onUnpin={() => {
 									unpinObjkt(objkt.key);
 								}}
+								initWidth={objkt.width}
+								initHeight={objkt.height}
+								checklist={checklist}
+								setChecklist={setChecklist}
+								
 							/>
 						</CSSTransition>
 					))}
 				</TransitionGroup>
 			) : null}
 
-
-			{!hideAllPins ? (
-				<TransitionGroup>
-					{races.map((race) => (
-						<CSSTransition
-							key={race.key}
-							timeout={10}
-							classNames="gif-transition"
-							onEntered={() => {
-								if (!race.isPinned) {
-									const index = races.findIndex(
-										(_race) => _race.key === race.key
-									);
-									updateRaces([
-										...races.slice(0, index),
-										...races.slice(index + 1)
-									]);
-								}
-							}}
-						>
-							<BoardObject
-								{...race}
-								id={race.key}
-								type="race"
-								raceId={race.id}
-								onPin={() => {
-									pinRace(race.key);
-								}}
-								onUnpin={() => {
-									unpinRace(race.key);
-								}}
-							/>
-						</CSSTransition>
-					))}
-				</TransitionGroup>
-			) : null}
-
-			{!hideAllPins && musicPlayer.playlist.length !== 0 && (
-				<BoardObject
-					id={'musicPlayer'}
-					type="musicPlayer"
-					onPin={() => {}}
-					onUnpin={() => {}}
-					playlist={musicPlayer.playlist}
-					top={musicPlayer.top}
-					left={musicPlayer.left}
-					setActivePanel={setActivePanel}
-				/>
-			)}
-			{!hideAllPins ? (
-				<TransitionGroup>
-					{horses.map((horse) => (
-						<CSSTransition
-							key={horse.key}
-							timeout={10}
-							classNames="gif-transition"
-							onEntered={() => {
-								if (!horse.isPinned) {
-									const index = horses.findIndex(
-										(_horse) => _horse.key === horse.key
-									);
-									updateHorses([
-										...horses.slice(0, index),
-										...horses.slice(index + 1)
-									]);
-								}
-							}}
-						>
-							<BoardObject
-								{...horse}
-								id={horse.key}
-								type="horse"
-								horseData={horse.horseData}
-								onPin={() => {
-									pinHorse(horse.key);
-								}}
-								onUnpin={() => {
-									unpinHorse(horse.key);
-								}}
-							/>
-						</CSSTransition>
-					))}
-				</TransitionGroup>
-			) : null}
-
-			<TransitionGroup>
-				{emojis.map((emoji) => (
-					<CSSTransition
-						key={emoji.key}
-						timeout={emoji.dict.speed || 1000}
-						classNames="note-transition"
-						onEntered={() => {
-							const index = emojis.findIndex(
-								(_emoji) => _emoji.key === emoji.key
-							);
-							updateEmojis([
-								...emojis.slice(0, index),
-								...emojis.slice(index + 1)
-							]);
-						}}
-					>
-						<div
-							style={{
-								width: 40,
-								height: 40,
-								top: emoji.top,
-								left: emoji.left,
-								position: 'absolute',
-								zIndex: 9999996,
-								userSelect: 'none'
-							}}
-						>
-							{emoji.dict.url ? (
-								<img src={emoji.dict.url} alt={emoji.dict.name} width="24" />
-							) : (
-								emoji.dict.name
-							)}
-						</div>
-					</CSSTransition>
-				))}
-			</TransitionGroup>
-
-			<TransitionGroup>
-				{musicNotes.map((note) => (
-					<CSSTransition
-						key={note.key}
-						timeout={1000}
-						classNames="note-transition"
-						onEntered={() => {
-							const noteIndex = musicNotes.findIndex(
-								(_note) => _note.key === note.key
-							);
-							updateNotes([
-								...musicNotes.slice(0, noteIndex),
-								...musicNotes.slice(noteIndex + 1)
-							]);
-						}}
-					>
-						<MusicNote {...note} />
-					</CSSTransition>
-				))}
-			</TransitionGroup>
 
 			<TransitionGroup>
 				{chatMessages.map((message) => (
@@ -772,6 +679,22 @@ export const Board = ({
 					</CSSTransition>
 				))}
 			</TransitionGroup>
+
+			{isMobile ? (
+								<BoardObject
+									text={"Mobile version is  under construction !"}
+									id={"warning"}
+									type="text"
+									onPin={() => {}}
+									onUnpin={() => {
+										
+									}}
+									top={200}
+									left={100}
+									initWidth={400}
+									initHeight={100}
+								/>
+							) : null}
 
 			{/* <TransitionGroup>
 				<CSSTransition
@@ -823,6 +746,10 @@ export const Board = ({
 									onUnpin={() => {
 										unpinText(text.key || '');
 									}}
+									initWidth={text.width}
+									initHeight={text.height}
+									checklist={checklist}
+									setChecklist={setChecklist}
 								/>
 							) : null}
 						</CSSTransition>
@@ -879,6 +806,11 @@ export const Board = ({
 								onUnpin={() => {
 									unpinGif(gif.key);
 								}}
+								initWidth={gif.width}
+								initHeight={gif.height}
+								checklist={checklist}
+								setChecklist={setChecklist}
+								
 							/>
 						</CSSTransition>
 					))}
@@ -909,12 +841,16 @@ export const Board = ({
 								id={image.key}
 								type="image"
 								imgSrc={image.url}
+								initWidth={image.width}
+								initHeight={image.height}
 								onPin={() => {
 									pinImage(image.key);
 								}}
 								onUnpin={() => {
 									unpinImage(image.key);
 								}}
+								checklist={checklist}
+								setChecklist={setChecklist}
 							/>
 						</CSSTransition>
 					))}
@@ -1045,6 +981,7 @@ export const Board = ({
 				avatarChatMessages={avatarMessages}
 				weather={weather}
 			/>
+
 		</div>
 	);
 };

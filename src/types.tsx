@@ -1,6 +1,6 @@
 import { IGif } from '@giphy/js-types';
 
-export type PinTypes = 'gif' | 'race' | 'background' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat'| 'horse' | 'musicPlayer' | 'tweet'; 
+export type PinTypes = 'gif' | 'race' | 'background' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat'| 'trash'|'bgHolder'|'horse' | 'musicPlayer' | 'tweet'; 
 
 
 export interface IBackgroundState {
@@ -20,6 +20,8 @@ export interface IPinnedItem {
 	data?: IGif;
 	mapData?: IMap;
 	[key: string]: any;
+	width: number;
+	height: number;
 }
 
 export interface IChatRoom {
@@ -41,6 +43,14 @@ export interface ITweet {
 	isPinned?: boolean;
 	
 }
+export interface IChecklist{
+	id: string;
+	left: number;
+	top: number;
+	isVisible: boolean;
+	items: [string, boolean];
+}
+
 export interface IAvatarChatMessages {
 	[userId: string]: string[];
 }
@@ -169,6 +179,8 @@ export interface IBoardImage {
 	key: string;
 	url: string;
 	isPinned?: boolean;
+	width: number;
+	height: number;
 }
 
 export interface IBoardVideo {
@@ -230,6 +242,8 @@ export interface IGifs {
 	key: string;
 	data: IGif;
 	isPinned?: boolean;
+	width: number;
+	height: number;
 }
 
 export enum PanelItemEnum {
@@ -358,6 +372,23 @@ export interface IWaterfallChat{
 	left: number;
 	messages: IWaterfallMessage[];
 	show: boolean;
+	width: number;
+	height: number;
+}
+
+export interface ITrail{
+	timestamp: string;
+	roomId: string;
+	domain ?: string;
+}
+
+export interface ITrailObject{
+	top: number;
+	left: number;
+	trails: ITrail[];
+	show: boolean;
+	width: number;
+	height: number;
 }
 
 export interface IChatroomData {
@@ -385,6 +416,8 @@ export interface IBoardObjkt{
 	key: string;
 	isPinned?: boolean;
 	type: 'objkt' | 'objktStat' ;
+	width: number;
+	height: number;
 }
 
 export interface ITrash{
@@ -415,6 +448,19 @@ export interface IWallet{
 	domain?: string;
 }
 
+export interface ITarget{
+	x: number;
+	y: number;
+}
+export interface IPet{
+	top: number;
+	left: number;
+	type: 'cat' | 'fox' | 'hedgehog';
+	key: string;
+	target: ITarget;
+	hide: boolean;
+}
+
 export interface IBoardMessage{
 	top: number;
 	left: number;
@@ -428,7 +474,27 @@ export interface IBoardMessage{
 	receiverAddress: string;
 	senderAddress?: string;
 	isWidget?: boolean;
+	width: number;
+	height: number;
 }
+
+export interface IPlayer{
+	top: number;
+	left: number;
+	type: 'cat' | 'fox' | 'hedgehog';
+	key: string;
+
+	attack: number;
+	hitpoint: number;
+	objktId: string;
+}
+
+export interface IMonster{
+
+	attack: number;
+	hitpoint: number;
+}
+
 
 export type OrderWithMetadata = IOrder & { metadata?: INFTMetadata };
 

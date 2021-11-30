@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { Button, TextField, makeStyles,	Avatar, IconButton,	createStyles,  Theme } from '@material-ui/core';
 import React, { useEffect, useState } from 'react';
-
+import objkt542098 from '../assets/542098.png';
 
 
 
@@ -19,7 +19,7 @@ const useStyles = makeStyles((theme: Theme) =>
 		
 	},
 	input: {
-		fontFamily: "poxel-font",
+		fontFamily: "roboto",
 		color: "black",
 	  },
     root: {
@@ -127,7 +127,7 @@ export const WidgetPanel = ({ sendObjkt, activeAddress }: IObjktPanel) => {
 			if (errors) {
 			  console.error(errors)
 			}
-			const result = data.hic_et_nunc_token
+			const result = data ? data.hic_et_nunc_token: null;
 			console.log( result )
 			setCreations(result)
 			return result
@@ -135,6 +135,9 @@ export const WidgetPanel = ({ sendObjkt, activeAddress }: IObjktPanel) => {
 		  //fetchCollection(activeAddress);
 
 		  fetchCreations("tz2UzpCpfT8v65Z7N53yzzDaXU8mMg5Ef93Y");
+
+
+
 	}, []);
 
 	const HashToURL = (hash, type) => {
@@ -184,18 +187,21 @@ export const WidgetPanel = ({ sendObjkt, activeAddress }: IObjktPanel) => {
 						<IconButton
 							key={id}
 							onClick={() => {
+								console.log("clickk")
 								sendObjkt (id, 'objktStat');
 							}}
 						>
-							<Avatar variant="rounded" src={HashToURL( display_uri, 'IPFS')} alt={id} className={classes.size} />
-							
+							{ id === 542098 ? 
+							<img  alt="objkt542098" src={objkt542098} style={{ width: 200, height: 200}} />
+							:
+							<iframe title="SVG renderer" width="200" muted height="200" src={ HashToURL(display_uri, "IPFS") +"?creator=false&amp;viewer=false&amp;objkt=false"} style={{pointerEvents: "none"}}  sandbox="allow-scripts" scrolling="no"></iframe>}
 						</IconButton>
 					))
 					}
 				</div>
 
 				<div style={{ display:"flex", paddingTop: 10, justifyContent: "center"}}>
-					<div style={{ paddingBlock: 5, paddingInline: 20, border: '1px dashed black' }}>
+					<div style={{ paddingBlock: 5, paddingInline: 20 }}>
 						<TextField
 							inputProps={{ className: classes.input }}
 							color="primary" focused

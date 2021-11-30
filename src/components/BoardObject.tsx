@@ -4,7 +4,7 @@ import React, { useState, useContext, useEffect } from 'react';
 
 import { Gif } from '@giphy/react-components';
 import { IGif } from '@giphy/js-types';
-import { Paper, Button } from '@material-ui/core';
+import { Paper, Button, Box } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { useDrag } from 'react-dnd';
 import {
@@ -15,7 +15,10 @@ import {
 	PanelItemEnum,
 	newPanelTypes,
 	IUserProfile,
-	IBoardMessage
+	IBoardMessage,
+	IChecklist,
+	ITrail,
+	IMonster
 } from '../types';
 import { Order } from './NFT/Order';
 import { CustomToken as NFT } from '../typechain/CustomToken';
@@ -43,7 +46,36 @@ import trashImage from '../assets/buttons/trash.png'
 import trashOpenImage from '../assets/buttons/trash_open.png'
 import { FirebaseContext } from '../contexts/FirebaseContext';
 import { v4 as uuidv4 } from 'uuid';
+import { Resizable, ResizableBox } from 'react-resizable';
+import { Height } from '@material-ui/icons';
+import boxBlank from '../assets/buttons/box_blank.png'
+import boxCheck from '../assets/buttons/box_check.png'
 
+import catIdle from '../assets/buttons/catIdle.gif'
+import catIdle2 from '../assets/buttons/catIdle2.gif'
+import catIdle3 from '../assets/buttons/catIdle3.gif'
+import catIdle4 from '../assets/buttons/catIdle4.gif'
+import catIdle5 from '../assets/buttons/catIdle5.gif'
+import catWalk from '../assets/buttons/catWalk.gif'
+import catWalk2 from '../assets/buttons/catWalk2.gif'
+import catPoke1 from '../assets/buttons/catPoke1.gif'
+import catPoke2 from '../assets/buttons/catPoke2.gif'
+import catPoke3 from '../assets/buttons/catPoke3.gif'
+
+import foxIdle from '../assets/buttons/foxIdle.gif'
+import foxIdle2 from '../assets/buttons/foxIdle2.gif'
+import foxIdle3 from '../assets/buttons/foxIdle3.gif'
+import foxPoke from '../assets/buttons/foxPoke.gif'
+import foxPoke2 from '../assets/buttons/foxPoke2.gif'
+import foxWalk from '../assets/buttons/foxWalk.gif'
+import foxWalk2 from '../assets/buttons/foxWalk2.gif'
+
+import HedgehogIdle from '../assets/buttons/HedgehogIdle.gif'
+import HedgehogIdle2 from '../assets/buttons/HedgehogIdle2.gif'
+import HedgehogPoke from '../assets/buttons/HedgehogPoke.gif'
+import HedgehogWalk from '../assets/buttons/HedgehogWalk.gif'
+
+import dungeon from '../assets/dungeon.png'
 const _ = require("lodash"); 
 const Tezos = new TezosToolkit('https://mainnet.api.tez.ie')
 const wallet = new BeaconWallet({
@@ -74,49 +106,60 @@ const useStyles = makeStyles({
 		whiteSpace: 'pre-line', //allows it to display multiple lines!,
 		color: "black",
 		backgroundColor: "white",
-		fontFamily: 'poxel-font',
+		fontFamily: 'roboto',
 	},
 	button: {
 		color: "black",
-		fontFamily: 'poxel-font',
+		fontFamily: 'roboto',
 		fontSize: 12
 	},
 
     buttonLarge: {
 		color: "black",
-		fontFamily: 'poxel-font',
+		fontFamily: 'roboto',
         fontSize: 18
 	},
 
     buttonBuy: {
 		color: "black",
-		fontFamily: 'poxel-font',
+		fontFamily: 'roboto',
         fontSize: 20
 	},
 
     buttonSize: {
 		color: "black",
-		fontFamily: 'poxel-font',
+		fontFamily: 'roboto',
         fontSize: 10
 	},
 
 	buttonGate: {
 		color: "black",
 		backgroundColor: "white",
-		fontFamily: 'poxel-font',
+		fontFamily: 'roboto',
         fontSize: 20,
 	},
 	buttonGateBottom: {
 		color: "black",
 		backgroundColor: "white",
-		fontFamily: 'poxel-font',
+		fontFamily: 'roboto',
         fontSize: 20,
 		transform: "rotate(180deg)"
+	},
+	pet: {
+		width:100,  
+		height:"auto",
+	},
+	petFlipped: {
+		width:100,  
+		height:"auto",
+		transform: "rotateY(180deg)"
 	}
 });
 
 interface BoardObjectProps {
 	id: string;
+	initWidth?: number;
+	initHeight?: number;
 	type:
 	| 'horse'
 	| 'objkt'
@@ -136,6 +179,10 @@ interface BoardObjectProps {
 	| 'bgHolder'
 	| 'wallet'
 	| 'message'
+	| 'checklist'
+	| 'pet'
+	| 'trail'
+	| 'player'
 	| 'tweet';
 	data?: IGif;
 	imgSrc?: string;
@@ -187,6 +234,18 @@ interface BoardObjectProps {
 	setModalState?: (modalState: string) => void;
 	setPreparedMessage?: (message: IBoardMessage) => void;
 	isWidget?:boolean;
+
+	checklist?: IChecklist;
+	setChecklist?: (checklist: IChecklist) => void;
+	hide?: boolean;
+	targetX?: number;
+	targetY?: number;
+	petPoked?: ()=>void;
+	updateIsTyping?: (isTyping: boolean) => void;
+	sendMessage?: (message: string) => void;
+	trail?: ITrail;
+	//player?: IPlayer;
+	//setPlayer?: (player: IPlayer) => void;
 }
 
 export const BoardObject = (props: BoardObjectProps) => {
@@ -228,15 +287,30 @@ export const BoardObject = (props: BoardObjectProps) => {
 		senderAddress,
 		setModalState,
 		setPreparedMessage,
-		isWidget
+		isWidget,
+		initWidth,
+		initHeight,
+		checklist,
+		setChecklist,
+		hide,
+		targetX,
+		targetY,
+		petPoked,
+		updateIsTyping,
+		sendMessage,
+		trail,
+		//player,
+		//setPlayer
 	} = props;
 	const location = useLocation();
+	const [width, setWidth] = useState(initWidth);
+	const [height, setHeight] = useState(initHeight);
 	const [isHovering, setIsHovering] = useState(false);
 	const [objkt, setobjkt] = useState();
 	const [sells, setSells] = useState(0);
 	const [revenue, setRevenue] = useState(0);
 
-	const [sellSound] = useState(new Audio("https://www.mboxdrive.com/success.mp3"));
+	//const [sellSound] = useState(new Audio("https://www.mboxdrive.com/success.mp3"));
 	const [forSale, setForSale] = useState(0);
 	const [sId, setSId] = useState(0);
 	const [sPrice, setSPrice] = useState(0);
@@ -248,10 +322,27 @@ export const BoardObject = (props: BoardObjectProps) => {
 	const { socket } = useContext(AppStateContext);
 	const firebaseContext = useContext(FirebaseContext);
 
+	const [petTop, setPetTop] = useState(top);
+	const [petLeft, setPetLeft] = useState(left);
+	const [petIdle, setPetIdle] = useState(true);
+	const [petTargetX, setPetTargetX] = useState(0);
+	const [petTargetY, setPetTargetY] = useState(0);
+	const [petImage, setPetImage] = useState( subtype === "cat" ? catIdle : (foxIdle ? foxIdle: HedgehogIdle));
+	const [petFacingRight, setPetFacingRight] = useState(true);
+	const [isFighting, setIsFighting] = useState(false);
+
+	//const [monster, setMonster] = useState<IMonster>();
+	//const [playerImage, setPlayerImage] = useState( foxIdle);
+	//const [monsterImage, setMonsterImage] = useState( HedgehogPoke);
+
 	let activeAddress = activeAccount ? activeAccount.address : "";
 	let leftRoom, rightRoom, topRoom, bottomRoom;
 	let x, y;
+	let playerLocal = {hitpoint: player.hitpoint, }
 
+	function randomInRange(min: number, max: number) {
+		return Math.random() * (max - min) + min;
+	}
 	function isDropable(holding){
 		//console.log("holding " + holding + " reporting " + type);
 		if(holding != "trash" && holding != "gate"  && type === "trash" ){
@@ -267,35 +358,53 @@ export const BoardObject = (props: BoardObjectProps) => {
 			return false;
 	}
 
+	function markChecklist (index){
+		if(checklist){
+			let items = checklist.items;
+			items[index].condition = true;
+			setChecklist({...checklist, items })
+		}
+	}
+
 	const [{ isOver, canDrop }, drop] = useDrop({
 		accept: 'item',
 		drop(item: IPinnedItem, monitor) {
 			const delta = monitor.getDifferenceFromInitialOffset() as XYCoord;
+
 			if(type === "trash"){
+				
 				switch (item.itemType){
 					case "image": 
 						unpinImage(item.id);
+						markChecklist(4);
 					break;
 					case "gif": 
 						unpinGif(item.id);
+						markChecklist(4);
 					break;
 					case "objkt": 
 						unpinObjkt(item.id);
+						markChecklist(4);
 					break;
 					case 'objktStat': 
 						unpinObjkt(item.id);
+						markChecklist(4);
 					break;
 					case "text": 
 						unpinText(item.id);
+						markChecklist(4);
 					break;
 					case "bgHolder": 
 						unpinBackground();
+						markChecklist(6);
 					break;
 					case "wallet":
 						unpinWallet(item.id);
+						markChecklist(4);
 					break;
 					case "message":
 						unpinMessage(item.id);
+						markChecklist(4);
 					break;
 
 					case "chat":
@@ -306,6 +415,11 @@ export const BoardObject = (props: BoardObjectProps) => {
 							x = location.pathname.split("/")[2].split(",")[0];
 							y = location.pathname.split("/")[2].split(",")[1];
 						}
+
+						else{
+							x = 0;
+							y = 0;
+						}
 						if(y){
 							room = x + "," + y;
 						}
@@ -313,19 +427,21 @@ export const BoardObject = (props: BoardObjectProps) => {
 							room = x;
 						else
 							room = "0,0";
-						console.log ("room "+ room) 
 						firebaseContext.deleteChat(room);
 						socket.emit('event', {
 							key: 'chat-clear'
 						});
+						markChecklist(9);
 					break;
 				}
 				return undefined;
 			}
 			else if(type === "bgHolder"){
+				markChecklist(5);
 				if(item.itemType === "image"){
 					pinBackground(item.imgSrc);
 					unpinImage(item.id);
+					
 				}
 				else if(item.itemType === "gif"){
 					pinBackground("https://i.giphy.com/media/" + item.data.id + "/giphy.webp");
@@ -346,7 +462,9 @@ export const BoardObject = (props: BoardObjectProps) => {
 						isPinned: true,
 						senderAddress: activeAccount ? activeAccount.address : null,
 						receiverAddress: address,
-						isWidget: (item.itemType === "objktStat")
+						isWidget: (item.itemType === "objktStat"),
+						width: item.width,
+						height: (item.itemType === "objktStat") ? item.height + 70 : item.height + 40
 					};
 					setPreparedMessage(newMessage);
 					//add from firebase 
@@ -380,8 +498,6 @@ export const BoardObject = (props: BoardObjectProps) => {
 
 				}
 				else if(item.itemType === "image"){
-					console.log("send " + item.imgSrc  + " to " + address );
-					
 					//create message board object
 					setModalState("send-message")
 					const newMessage: IBoardMessage = {
@@ -391,7 +507,9 @@ export const BoardObject = (props: BoardObjectProps) => {
 						imgSrc: item.imgSrc,
 						isPinned: true,
 						senderAddress: activeAccount ? activeAccount.address : null,
-						receiverAddress: address
+						receiverAddress: address,
+						width: item.width,
+						height: item.height + 30
 					};
 
 					setPreparedMessage(newMessage);
@@ -427,7 +545,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 						domain: item.domain,
 						isPinned: true,
 						senderAddress: activeAccount ? activeAccount.address : null,
-						receiverAddress: address
+						receiverAddress: address,
 					};
 					setPreparedMessage(newMessage);
 				}
@@ -502,7 +620,6 @@ export const BoardObject = (props: BoardObjectProps) => {
       }
 
 	async function transfer(tokenID, sender, recipient  ) {
-		console.log("transfer")
 		const contract = await Tezos.wallet.at(
 			"KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton" 
 		  );
@@ -529,6 +646,67 @@ export const BoardObject = (props: BoardObjectProps) => {
 			])
 			.send();
 		  console.log(result);
+      }
+
+	const delay = ms => new Promise(res => setTimeout(res, ms));
+	async function enterDungeon() {
+
+		
+		let x;
+		let y;
+		let room;
+		if(location.pathname.length != 1){
+			x = location.pathname.split("/")[2].split(",")[0];
+			y = location.pathname.split("/")[2].split(",")[1];
+		}
+		else{
+			room = "0,0";
+		}
+		if(y){
+			room = x + "," + y;
+		}
+		else if(x)
+			room = x;
+		else
+			room = "0,0";
+		console.log ("room "+ room + " palyer " + player.objktId); 
+		//sentPlayerStats&getEnemyStats(roomId) (server calcualtes results and records it on firebase, then sents enemy stat for visualising fight)
+		const {
+				isSuccessful,
+				monsterData
+			} = await firebaseContext.enterDungeon(room || '0,0', player.objktId);
+		console.log("monsterData ")
+		console.log(monsterData)
+		//init Enemy
+		const mons: IMonster = {
+			hitpoint: monsterData.hitpoint,
+			attack: monsterData.attack
+		};
+		setMonster(mons);
+		console.log(monster);
+		let i = 0;
+		while(player.hitpoint > 0 && monster.hitpoint > 0 && i< 10){
+			let newPhp = 5;
+			let newMhp = 3;
+			setPlayer((player) => ({ ...player, hitpoint: 3}));
+			setMonster((monster) => ({ ...monster, hitpoint: 5}));
+			console.log(player);
+			console.log(monster);
+			i++;
+			await delay(5000);
+    		//player.hitpoint = player.hitpoint - monster.attack;
+    		//monster.hitpoint = monster.hitpoint - player.attack;
+    	}
+
+		setIsFighting(true);
+		setPlayerImage(foxPoke);
+
+		//div prints fight anims
+		//each x seconds hps drops
+		//show win or lose state
+
+
+
       }
 
 	useEffect(() => {
@@ -580,7 +758,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 	}, [])
 
 	useEffect(() => {
-		if (objktId) {
+		if (objktId && objkt) {
 
 			async function fetchMyAPI() {
 
@@ -627,8 +805,249 @@ export const BoardObject = (props: BoardObjectProps) => {
 
 	}, [])
 
+	function getRandomInt(max) {
+		return Math.floor(Math.random() * max);
+	  }
+
+
+	function poke(){
+		setPetIdle(true);
+		petPoked();
+		if(subtype === "cat"){
+			switch(getRandomInt(3)) {
+				case 0:
+					setPetImage(catPoke1);
+				break;
+				case 1:
+					setPetImage(catPoke2);
+				break;
+				case 2:
+					setPetImage(catPoke3);
+				break;
+			}
+/*
+			let x;
+			let y;
+			let room;
+			if(location.pathname.length != 1){
+				x = location.pathname.split("/")[2].split(",")[0];
+				y = location.pathname.split("/")[2].split(",")[1];
+			}
+			else{
+				room = "0,0";
+			}
+			if(y){
+				room = x + "," + y;
+			}
+			else if(x)
+				room = x;
+			else
+				room = "0,0";
+			console.log ("room "+ room) 
+
+			const timestamp = new Date().getTime().toString();
+			firebaseContext.addtoChat(room,
+				"nyaa",
+				"catIdle",
+				"cat",
+				timestamp,
+				""
+			);
+			socket.emit('event', {
+				key: 'chat-dnd',
+				value: "nyaa",
+				avatar: "catIdle",
+				name: "cat",
+				author: "",
+				recRoom: room
+			});*/
+		}
+		else if (subtype === "fox") {
+			switch(getRandomInt(2)) {
+				case 0:
+					setPetImage(foxPoke);
+				break;
+				case 1:
+					setPetImage(foxPoke2);
+				break;
+			}
+		}
+		else if (subtype === "hedgehog") {
+			setPetImage(HedgehogPoke);
+		}
+		setTimeout(setIdleImage, 2000);
+
+	}
+
+	function setWalkImage() {
+		if(subtype === "cat"){
+			switch(getRandomInt(2)) {
+				case 0:
+					setPetImage(catWalk);
+				break;
+				case 1:
+					setPetImage(catWalk2);
+				break;
+			}
+		}
+		else if(subtype === "fox"){
+			switch(getRandomInt(2)) {
+				case 0:
+					setPetImage(foxWalk);
+				break;
+				case 1:
+					setPetImage(foxWalk2);
+				break;
+			}
+		}
+		else if (subtype === "hedgehog") {
+			setPetImage(HedgehogWalk);
+		}
+	}
+
+	function setIdleImage() {
+		setPetIdle(true);
+		if(subtype === "cat"){
+			switch(getRandomInt(5)) {
+				case 0:
+					setPetImage(catIdle);
+				break;
+				case 1:
+					setPetImage(catIdle2);
+				break;
+				case 2:
+					setPetImage(catIdle3);
+				break;
+				case 3:
+					setPetImage(catIdle4);
+				break;
+				case 4:
+					setPetImage(catIdle5);
+				break;
+			}
+		}
+		else if(subtype === "fox"){
+			switch(getRandomInt(3)) {
+				case 0:
+					setPetImage(foxIdle);
+				break;
+				case 1:
+					setPetImage(foxIdle2);
+				break;
+				case 2:
+					setPetImage(foxIdle3);
+				break;
+			}
+		}
+		else if(subtype === "hedgehog"){
+			switch(getRandomInt(2)) {
+				case 0:
+					setPetImage(HedgehogIdle);
+				break;
+				case 1:
+					setPetImage(HedgehogIdle2);
+				break;
+			}
+		}
+	}
+
+	function goTarget(){
+		
+		let goHorizontal = Math.abs(petTargetX - petLeft) > 15 ;
+		let goVertical = Math.abs(petTargetY - petTop) > 15;
+		if( goHorizontal || goVertical ){
+			if(goHorizontal){
+				if(petTargetX > petLeft){
+					if(!petFacingRight)
+						setPetFacingRight(true);
+
+					setPetLeft(petLeft + 20);
+				}else{
+					if(petFacingRight)
+						setPetFacingRight(false);
+					setPetLeft(petLeft - 20);
+				}
+			}
+			
+			if(goVertical){
+				if(petTargetY > petTop){
+
+					setPetTop(petTop + 15);
+				}else{
+					setPetTop(petTop - 15);
+				}
+			}
+		}else{
+			setPetIdle(true);
+			setIdleImage();
+		}	
+	}
+
+
 	useEffect(() => {
-		if (objktId) {
+		if(type === "pet" && petIdle){
+			const petState = setInterval(async () => {
+				if(getRandomInt(2) === 0){
+					setPetTargetX(getRandomInt(1700))
+					setPetTargetY(getRandomInt(700))
+					setPetIdle(false);
+					setWalkImage();
+
+				}else{
+					setPetIdle(true);
+					setIdleImage();
+				}
+			}, 12000);
+			return () => clearInterval(petState);
+		}
+
+	}, [ petTargetX, petTargetY, petIdle])
+
+	useEffect(() => {
+		if(type === "pet"){
+			const interval = setInterval(async () => {
+				if(!petIdle){
+					goTarget();
+				}
+
+			}, 300);
+			return () => clearInterval(interval);
+		}
+
+	}, [petTargetX, petLeft, petTop, petIdle, petFacingRight])
+
+	function goNear(x,y){
+		let offsetx = randomInRange(-75, 75);
+		let offsety = randomInRange(-75, 75);
+		setPetTargetX(x+offsetx)
+		setPetTargetY(y+offsety)
+		setPetIdle(false);
+		setWalkImage();
+	}
+
+	useEffect(() => {
+		if(type === "pet"){
+			goNear(targetX,targetY)
+		}
+
+	}, [targetX, targetY])
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////7
+	useEffect(() => {
+		if(type === "pet"){
+			if(petTop != top && petLeft != left){
+				setPetLeft(left);
+				setPetTop(top);
+			}
+		}
+	}, [left, top])
+
+	useEffect(() => {
+		setWidth(initWidth);
+		setHeight(initHeight);
+	}, [initHeight, initWidth])
+
+	useEffect(() => {
+		if (objktId && objkt) {
 			const interval = setInterval(async () => {
 				let sellCount = 0;
 
@@ -641,25 +1060,27 @@ export const BoardObject = (props: BoardObjectProps) => {
 					}
 					if ((sellCount !== sells && sells != 0)) {
 						activateFireworks();
-						sellSound.play();
+						//sellSound.play();
 						setobjkt(temp);
 					}
 
-					if (objkt && (objkt.token_holders.length !== temp.token_holders.length)) {
+					if (objkt.token_holders ) {
+						/*if((objkt.token_holders.length !== temp.token_holders.length)){
 						activateFireworks();
 						setobjkt(temp);
-						sellSound.play();
+						sellSound.play();}*/
 					}
 				}
 
 			}, 60000);
 			return () => clearInterval(interval);
 		}
-	}, [objkt, sells, sellSound])
+	}, [objkt, sells//, sellSound
+	])
 
 
 	const [{ isDragging }, drag, preview] = useDrag({
-		item: { id, left, top, itemType: type, type: 'item', imgSrc, data, objktId, text, address, domain },
+		item: { id, left, top, itemType: type, type: 'item', imgSrc, data, objktId, text, address, domain, width, height },
 		collect: (monitor) => ({
 			isDragging: monitor.isDragging(),
 		})
@@ -670,7 +1091,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 	}*/
 
 	const noLinkPrev = (
-		<div className={classes.text} style={{ width: 180 }}>
+		<div  style={{ width: width, height: height, textAlign:"center"}}>
 			{text}
 		</div>
 	);
@@ -678,131 +1099,128 @@ export const BoardObject = (props: BoardObjectProps) => {
 	const shouldShowMoveButton =
 		isPinned || type === 'chat' || type === 'musicPlayer';
 
+	const onResize = (event, {element, size}) => {
+			//this.setState({width: size.width, height: size.height});
+			setWidth(size.width);
+			setHeight(size.height);
+		  };
+
+	const onResizeStop = (event, {element, size}) => {
+
+			let x;
+			let y;
+			let room;
+			if(location.pathname.length != 1){
+				x = location.pathname.split("/")[2].split(",")[0];
+				y = location.pathname.split("/")[2].split(",")[1];
+			}
+			else{
+				room = "0,0";
+			}
+			if(y){
+				room = x + "," + y;
+			}
+			else if(x)
+				room = x;
+			else
+				room = "0,0";
+			console.log ("room "+ room) 
+
+
+
+			const {
+				isSuccessful,
+				message
+			} = firebaseContext.resizePinnedRoomItem(room || '0,0', {
+				type,
+				width: width,
+				height: height,
+				key: id
+			});
+
+			socket.emit('event', {
+				key: 'resize-item',
+				type,
+				width: width,
+				height: height,
+				itemKey: id
+			});
+
+			markChecklist(3);
+
+
+		  };
 	return (
 		<div
 			style={{
-				top,
-				left,
+				top: type === "pet" ? petTop : top,
+				left: type === "pet" ? petLeft : left,
 				/* zIndex: isHovering ? 99999999 : 'auto' */
-				zIndex: (isHovering || type === 'chat' || type === 'gate'  || type === 'trash' || type === 'minter' || type === 'bgHolder' ) ? 99999999 : 99999998
+				zIndex: (isHovering || type === 'chat' || type === 'gate'  || type === 'trash' || type === 'minter' || type === 'bgHolder' || id === 'warning' || !hide) ? 99999999 : 99999998
 			}}
 			className={classes.container}
-			ref={drag}
+			
 		>
-			{!isDragging &&  <Paper
-				elevation={0}
-				onMouseEnter={() => setIsHovering(true)}
-				onMouseLeave={() => setIsHovering(false)}
-				onTouchStart={() => setIsHovering(true)}
-				onTouchEnd={() => setIsHovering(false)}
-			>
-				{type === 'gif' && data && <Gif gif={data}  width={180} noLink={true} />}
+
+				{type === 'gif' && data && 
+				<Resizable height={height} width={width} onResizeStop={onResizeStop} onResize={onResize}>
+				<div ref={drag} style={{width: width, height: height}}>
+					<Gif gif={data}  width={width} noLink={true} />
+				</div>
+				</Resizable>
+				}
 				{type === 'image' && imgSrc && (
-					
-						<img alt="user-selected-img" src={imgSrc} style={{ width: 180, height: '100%' }} />
-					
+					<Resizable height={height} width={width} onResizeStop={onResizeStop} onResize={onResize}>
+						<div   style={{width: width, height: height }}>
+							<img ref={drag} alt="user-selected-img" src={imgSrc} style={{ width: width, height: height, transform: [ {scaleX: -1}] }} />
+						</div>
+					</Resizable>
 				)}
 				{type === 'text' && text && (
-					<div className={classes.text} style={{ width: 200 , border: '1px dashed black'}}>
-						<div>
-							{text && (
-								<LinkPreview
-									url={text!}
-									fallback={noLinkPrev}
-									descriptionLength={50}
-									imageHeight={100}
-									showLoader={false}
-								/>
-							)}
-						</div>
+					<div className={classes.text} style={{ width: width }}>
+						<Resizable height={height} width={width} onResizeStop={onResizeStop} onResize={onResize}>
+							<div  style={{ width: width, height: height}}>
+								{text && <div  ref={drag} >
+									<LinkPreview
+										
+										url={text!}
+										fallback={noLinkPrev}
+										descriptionLength={50}
+										imageHeight={height}
+										showLoader={false}
+									/>
+								</div>}
+							</div>
+						</Resizable>
 					</div>
 				)}
-				{type === 'NFT' && order && (
-					<Order
-						onBuy={() => (onBuy ? onBuy(id) : undefined)}
-						onCancel={() => (onCancel ? onCancel(id) : undefined)}
-						addNewContract={addNewContract}
-						order={order}
-					/>
-				)}
-				{type === 'map' && data && <Map />}
-				{type === 'tweet' && id && <Tweet tweetId={id} />}
-				{type === 'video' && id && (
-					<div
-						className="pinned-video-player"
-						style={{
-							height: '225px',
-							width: '400px'
-						}}
-					>
-						<ReactPlayer
-							width="100%"
-							height="100%"
-							url={`https://www.youtube.com/watch/${id}`}
-							controls={true}
-							playing={isPinnedPlaying}
-							onPlay={() => {
-								socket.emit('event', {
-									key: 'youtube',
-									value: id,
-									playPin: true
-								});
-							}}
-							onPause={() => {
-								socket.emit('event', {
-									key: 'youtube',
-									value: id,
-									playPin: false
-								});
-							}}
-						/>
-					</div>
-				)}
-				{type === 'horse' && horseData && <Horse horse={horseData} />}
-				{type === 'chat' && chat && setActivePanel && (
-					<WaterfallChat
-						setActivePanel={setActivePanel}
-						chat={chat}
-						routeRoom={routeRoom}
-					/>
-				)}
-				{type === 'musicPlayer' && playlist && setActivePanel &&
-					<div style={{ width: 320 }} onClick={(e) => { e.stopPropagation(); setActivePanel('music'); }} >
-						<MusicPlayer playlist={playlist} />
-					</div>
-				}
-				{type === 'race' && (
-					<div style={{ width: 400, height: 225 }}>
-						<iframe
-							src={`https://3d-racing.zed.run/live/${raceId}`}
-							width="100%"
-							height="100%"
-							title="zed racing"
-							style={{ pointerEvents: 'auto' }}
-						/>
-					</div>
-				)}
+				
 				{type === 'objktStat' && size === 0 && objkt && (
-					<div style={{  maxHeight:400, padding: 10, overflowY: 'auto',  backgroundColor: "white" , border: '1px dashed black'}}>
-						<div style={{ border: '4px dashed black', alignItems: "center"}}>
+					<Resizable height={height} width={width} onResizeStop={onResizeStop} onResize={onResize}>
+					<div   style={{ height:height, width:width, padding: 3,   backgroundColor: "white" }}>
+						<div  ref={drag} style={{ alignItems: "center", padding: 10 }}>
 						        <iframe
 									scrolling="no"
-									width="307" 
-									height="307"
+									width={width-26}
+									height={height-26}
 									title="html-embed"
 									src={`${HashToURL( objkt.artifact_uri, 'IPFS')}/?creator=true&viewer=true&objkt=${objktId}`}
-									sandbox="allow-scripts allow-same-origin"
+									sandbox="allow-scripts allow-same-origin " 
 									allow="accelerometer; camera; gyroscope; microphone; xr-spatial-tracking;"
 
 									/>
 						</div>
 					</div>
-				)}
+					</Resizable>
+				)} 
 				{type === 'objkt' && size === 0 && (
-					<div style={{ width: 340, backgroundColor: "white" , border: '1px dashed black'}}>
+					<Resizable height={height} width={width} onResizeStop={onResizeStop} onResize={onResize}>
+					<div   style={{ height:height, width:width, padding: 3,   backgroundColor: "white" }}>
+
+					<div ref={drag}  style={{ width: width, backgroundColor: "white" }}>
                         {objkt && <div style={{display:"flex", alignItems: "center", paddingInline:6}} > 
 							<div style={{color: "black", textAlign: "left"}}> {forSale}  / {objkt.supply}  </div>
-							<div style={{ color: "black", textAlign: "center", fontSize: 20, margin:"auto" }} ><Button className={classes.buttonLarge}  title={objkt.title} onClick={() => { window.open('https://www.hicetnunc.xyz/objkt/' + objkt.id); }}>{objkt.title}</Button></div>
+							<div style={{ color: "black", textAlign: "center", fontSize: 20, margin:"auto" }} ><Button className={classes.buttonLarge}  title={objkt.title} onClick={() => { window.open('https://www.hicetnunc.art/objkt/' + objkt.id); }}>{objkt.title}</Button></div>
 							<div style={{color: "black", textAlign: "right"}}>  <Button className={classes.buttonGateBottom} title={"size"} onClick={() => { setSize(1) }}>^</Button></div>
 						</div>}
 						{ objkt && objkt.mime === "video/mp4" && 
@@ -810,12 +1228,12 @@ export const BoardObject = (props: BoardObjectProps) => {
 								<source src={HashToURL( objkt.artifact_uri, 'IPFS')} type="video/mp4" />
 							</video>}
 						{ objkt && objkt.mime === "application/x-directory" && 
-								<div style={{  maxHeight:400, padding: 10, overflowY: 'auto',  backgroundColor: "white" , border: '1px dashed black'}}>
-								<div style={{ border: '4px dashed black', alignItems: "center"}}>
+								<div style={{ padding: 10, overflowY: 'auto',  backgroundColor: "white" }}>
+								<div style={{alignItems: "center"}}>
 										<iframe
 											scrolling="no"
-											width="307" 
-											height="307"
+											width={width-26}
+											height={width-26}
 											title="html-embed"
 											src={`${HashToURL( objkt.artifact_uri, 'IPFS')}/?creator=true&viewer=true&objkt=${objktId}`}
 											sandbox="allow-scripts allow-same-origin"
@@ -826,21 +1244,26 @@ export const BoardObject = (props: BoardObjectProps) => {
 							</div>
 							}
 						{ objkt && (objkt.mime != "video/mp4" && objkt.mime != "application/x-directory" ) &&
-							<img src={HashToURL( objkt.display_uri, 'IPFS')} alt={objkt.title} width="340"  height="100%" ></img>
+							<img src={HashToURL( objkt.display_uri, 'IPFS')} alt={objkt.title} width={width}  height="auto" ></img>
 						}
-                        <div style={{ color: "white", pointerEvents: "auto", textAlign: "center" }}>
-                            {sId != 0 && <Button className={classes.buttonBuy} title={"buy"} onClick={() => { collect(sId, sPrice) }}>{ Number(sPrice / 1000000)} tez BUY</Button>}
-                            {sId === 0 && <Button className={classes.buttonBuy} title={"buy"} onClick={() => { collect(sId, sPrice) }}>Not Available</Button>}
-
+                        <div style={{ color: "white", textAlign: "center" }}>
+                            {sId != 0 && <Button className={classes.buttonBuy} title={"buy"} onClick={() => { collect(sId, sPrice) }}>{ Number(sPrice / 1000000)} tez SWAP</Button>}
                         </div>
 					</div>
+
+					</div>
+					</Resizable>
 				)
 				}
 				{type === 'objkt' && size === 1 && (
-					<div style={{ width: 340, maxHeight:400, overflowY: 'auto',  backgroundColor: "white" , border: '1px dashed black'}}>
+
+					<Resizable height={height} width={width} onResizeStop={onResizeStop} onResize={onResize}>
+					<div   style={{ height:height, width:width, padding: 3,   backgroundColor: "white" }}>
+
+					<div ref={drag}  style={{ width: width, height:height, overflowY: 'auto',  backgroundColor: "white" }}>
                         {objkt && <div style={{display:"flex", alignItems: "center", paddingInline:6}} > 
 							<div style={{color: "black", textAlign: "left"}}> {forSale}  / {objkt.supply}  </div>
-							<div style={{ color: "black", textAlign: "center", fontSize: 20, margin:"auto" }} ><Button className={classes.buttonLarge}  title={objkt.title} onClick={() => { window.open('https://www.hicetnunc.xyz/objkt/' + objkt.id); }}>{objkt.title}</Button></div>
+							<div style={{ color: "black", textAlign: "center", fontSize: 20, margin:"auto" }} ><Button className={classes.buttonLarge}  title={objkt.title} onClick={() => { window.open('https://www.hicetnunc.art/objkt/' + objkt.id); }}>{objkt.title}</Button></div>
 							<div style={{color: "black", textAlign: "right"}}>  <Button className={classes.buttonBuy} title={"size"} onClick={() => { setSize(0) }}>^</Button></div>
 						</div>}
 						{ objkt && objkt.mime === "video/mp4" && 
@@ -848,12 +1271,12 @@ export const BoardObject = (props: BoardObjectProps) => {
 								<source src={HashToURL( objkt.artifact_uri, 'IPFS')} type="video/mp4" />
 							</video>}
 							{ objkt && objkt.mime === "application/x-directory" && 
-								<div style={{  maxHeight:400, padding: 10, overflowY: 'auto',  backgroundColor: "white" , border: '1px dashed black'}}>
-								<div style={{ border: '4px dashed black', alignItems: "center"}}>
+								<div style={{ padding: 10, overflowY: 'auto',  backgroundColor: "white" }}>
+								<div style={{ alignItems: "center"}}>
 										<iframe
 											scrolling="no"
-											width="307" 
-											height="307"
+											width={width-26}
+											height={width-26}
 											title="html-embed"
 											src={`${HashToURL( objkt.artifact_uri, 'IPFS')}/?creator=true&viewer=true&objkt=${objktId}`}
 											sandbox="allow-scripts allow-popups allow-same-origin"
@@ -864,13 +1287,12 @@ export const BoardObject = (props: BoardObjectProps) => {
 							</div>
 							}
 						{ objkt && (objkt.mime != "video/mp4" && objkt.mime != "application/x-directory" ) &&
-							<img src={HashToURL( objkt.display_uri, 'IPFS')} alt={objkt.title} width="340"  height="100%" ></img>
+							<img src={HashToURL( objkt.display_uri, 'IPFS')} alt={objkt.title} width={width}  height="auto" ></img>
 						}
 
 						{objkt && !isWidget &&
 								<div style={{ color: "blue", pointerEvents: "auto", textAlign: "center" }}>
-									{sId != 0 && <Button className={classes.buttonBuy} title={"buy"} onClick={() => { collect(sId, sPrice) }}>{ Number(sPrice / 1000000)} tez BUY</Button>}
-                            		{sId === 0 && <Button className={classes.buttonBuy} title={"buy"} onClick={() => { collect(sId, sPrice) }}>Not Available</Button>}
+									{sId != 0 && <Button className={classes.buttonBuy} title={"buy"} onClick={() => { collect(sId, sPrice) }}>{ Number(sPrice / 1000000)} tez SWAP</Button>}
 
 									<div>Total Sell Count: {sells}</div>
 									<div>Total Revenue: {revenue}</div>
@@ -882,11 +1304,11 @@ export const BoardObject = (props: BoardObjectProps) => {
 											{(activeAddress && (trade.seller.address === activeAddress || trade.buyer.address === activeAddress)) ?
 												<div style={{ paddingLeft: 1, textAlign: "left", color: "green" }}>
 													 {trade.seller.name ? 
-													<Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.xyz/' + trade.seller.name); }}>{trade.seller.name}</Button> 
-													: <Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.xyz/tz/' + trade.seller.address); }}>{trade.seller.address.slice(0, 6)} ... {trade.seller.address.slice(32, 36)}</Button>} 
+													<Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.art/' + trade.seller.name); }}>{trade.seller.name}</Button> 
+													: <Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.art/tz/' + trade.seller.address); }}>{trade.seller.address.slice(0, 6)} ... {trade.seller.address.slice(32, 36)}</Button>} 
 													 {" >>> "} {trade.buyer.name 
-													? <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.xyz/' + trade.buyer.name); }}>{trade.buyer.name}</Button> 
-													: <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.xyz/tz/' + trade.buyer.address); }}>{trade.buyer.address.slice(0, 6)} ... {trade.buyer.address.slice(32, 36)} </Button>} 
+													? <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.art/' + trade.buyer.name); }}>{trade.buyer.name}</Button> 
+													: <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.art/tz/' + trade.buyer.address); }}>{trade.buyer.address.slice(0, 6)} ... {trade.buyer.address.slice(32, 36)} </Button>} 
 													<div style={{  display:"flex", alignText: "center", paddingInline:6}}> 
 														<div style={{ textAlign: "left"}}>{trade.timestamp.slice(2, 10)}</div>
 														<div style={{ textAlign: "center", margin:"auto" }}>{trade.amount} ed.</div>
@@ -894,13 +1316,13 @@ export const BoardObject = (props: BoardObjectProps) => {
 													</div>
 												</div>
 												:
-												<div style={{ paddingLeft: 1, textAlign: "left", color: "blue",  border: '1px dashed black' }}>
+												<div style={{ paddingLeft: 1, textAlign: "left", color: "blue" }}>
 													 {trade.seller.name ? 
-													<Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.xyz/' + trade.seller.name); }}>{trade.seller.name}</Button> 
-													: <Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.xyz/tz/' + trade.seller.address); }}>{trade.seller.address.slice(0, 6)} ... {trade.seller.address.slice(32, 36)}</Button>} 
+													<Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.art/' + trade.seller.name); }}>{trade.seller.name}</Button> 
+													: <Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.art/tz/' + trade.seller.address); }}>{trade.seller.address.slice(0, 6)} ... {trade.seller.address.slice(32, 36)}</Button>} 
 													 {" >>> "} {trade.buyer.name 
-													? <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.xyz/' + trade.buyer.name); }}>{trade.buyer.name}</Button> 
-													: <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.xyz/tz/' + trade.buyer.address); }}>{trade.buyer.address.slice(0, 6)} ... {trade.buyer.address.slice(32, 36)} </Button>} 
+													? <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.art/' + trade.buyer.name); }}>{trade.buyer.name}</Button> 
+													: <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.art/tz/' + trade.buyer.address); }}>{trade.buyer.address.slice(0, 6)} ... {trade.buyer.address.slice(32, 36)} </Button>} 
 													<div style={{  display:"flex", alignText: "center", paddingInline:6}}> 
 														<div style={{ textAlign: "left"}}>{trade.timestamp.slice(2, 10)}</div>
 														<div style={{ textAlign: "center", margin:"auto" }}>{trade.amount} ed.</div>
@@ -914,11 +1336,44 @@ export const BoardObject = (props: BoardObjectProps) => {
 							}
 							
 					</div>
+
+					</div>
+					</Resizable>
+				)}
+				{type === 'chat' && chat && setActivePanel && (
+					<Resizable height={height} width={width} onResizeStop={onResizeStop} onResize={onResize}>
+					<div  style={{ height:height, width:width, backgroundColor: "white"}}>
+						<div ref={drag}  >
+							<div >
+							<WaterfallChat
+								setActivePanel={setActivePanel}
+								chat={chat}
+								routeRoom={routeRoom}
+								updateIsTyping={updateIsTyping}
+								sendMessage={sendMessage}
+								height={height-60}
+								width={width}
+							/>
+							</div>
+						</div>
+					</div>
+					</Resizable>
 				)}
 
-				{type === 'message' && ((imgSrc && (
+				{type === 'pet' &&  (
+					<div ref={drag} onClick={()=>{poke()}}>
+						<img src={petImage} className={petFacingRight ? classes.pet : classes.petFlipped } alt={"pet"}  ></img>
+					</div>
+				)}
 
-							<div style={{ width: 180, padding: 5 }}> 					 	 <div style={{  alignItems: "center" }}> 
+				{type === 'message' && 
+				
+				<Resizable height={height} width={width} onResizeStop={onResizeStop} onResize={onResize}>
+				<div   style={{ height:height, width:width, padding: 3,   backgroundColor: "white" }}>
+				{((imgSrc && (
+
+							<div ref={drag} style={{ width: width, height: height }}> 					 	 
+							<div style={{  alignItems: "center" }}> 
 
 							<Button className={classes.text} onClick={() => { if(senderAddress) routeRoom(senderAddress) }}>
 								{senderAddress ? (senderAddress.slice(0, 6) + "..." + senderAddress.slice(32, 36) + ":") : "anon: "}
@@ -926,17 +1381,20 @@ export const BoardObject = (props: BoardObjectProps) => {
 							
 							{text}  
 						</div>
-							<img alt="user-selected-img" src={imgSrc} style={{ width: 180, height: '100%' }} />
+							<img alt="user-selected-img" src={imgSrc} style={{ width: width-6, height: 'auto' }} />
 							</div>
-						))
+						)
+						
+						)
+
 					|| address &&
-					<div style={{ width: 180, padding: 5 }}> 					 	 <div style={{ alignItems: "center" }}> 
+					<div ref={drag} style={{ width: width-6 }}> 					 	 <div style={{ alignItems: "center" }}> 
 					<Button className={classes.text} onClick={() => { if(senderAddress) routeRoom(senderAddress) }}>
 					{senderAddress ? (senderAddress.slice(0, 6) + "..." + senderAddress.slice(32, 36) + ":") : "anon: "}
 					</Button>
 					 {text}  
 				</div>
-					<div style = {{ border: '3px dashed black', height: 80, backgroundColor: ((!isOver && canDrop)? "YellowGreen" : (isOver && canDrop) ? "LawnGreen" : "white" ), color: "black", textAlign: "center", fontSize: 20}}> 
+					<div style = {{ height: 80, backgroundColor: ((!isOver && canDrop)? "YellowGreen" : (isOver && canDrop) ? "LawnGreen" : "white" ), color: "black", textAlign: "center", fontSize: 20}}> 
 						Send to<br></br> ------- <br></br> 
 							<Button className={classes.text} onClick={() => { routeRoom(address) }}>
 								{domain ? domain : (address.slice(0, 6) + "..." + address.slice(32, 36))}
@@ -944,7 +1402,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 					</div>
 					 </div>
 					|| data &&
-					<div style={{ width: 180, padding: 5 }}>					 	 <div style={{ alignItems: "center" }}> 
+					<div style={{ width: 180 }}>					 	 <div style={{ alignItems: "center" }}> 
 					<Button className={classes.text} onClick={() => { if(senderAddress) routeRoom(senderAddress) }}>
 					{senderAddress ? (senderAddress.slice(0, 6) + "..." + senderAddress.slice(32, 36) + ":") : "anon: "}
 					</Button>
@@ -954,18 +1412,18 @@ export const BoardObject = (props: BoardObjectProps) => {
 					 </div>
 
 					||objkt &&  objktId && isWidget &&
-						<div style={{  maxHeight:400, padding: 10, overflowY: 'auto',  backgroundColor: "white" , border: '1px dashed black'}}>
+						<div ref={drag} style={{  height:height-6, overflowY: 'auto',  backgroundColor: "white" }}>
 							<div style={{ alignItems: "center" }}>   
 							<Button className={classes.text} onClick={() => { if(senderAddress) routeRoom(senderAddress) }}>
 							{senderAddress ? (senderAddress.slice(0, 6) + "..." + senderAddress.slice(32, 36) + ":") : "anon: "}
 							</Button>
 							 {text}  
 						</div>
-							<div style={{ border: '4px dashed black', alignItems: "center"}}>
+							<div style={{ alignItems: "center"}}>
 								<iframe
 									scrolling="no"
-									width="307" 
-									height="307"
+									width={width-10}
+									height={height-100}
 									title="html-embed"
 									src={`${HashToURL( objkt.artifact_uri, 'IPFS')}/?creator=true&viewer=true&objkt=${objktId}`}
 									sandbox="allow-scripts allow-same-origin"
@@ -978,7 +1436,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 
 					 || objkt &&  objktId && !isWidget &&
 
-					 <div style={{ width: 340, padding: 5 }}> 
+					 <div ref={drag} style={{ width: width-6, padding: 5 }}> 
 					 	 <div style={{ alignItems: "center" }}>   
 							<Button className={classes.text} onClick={() => { if(senderAddress) routeRoom(senderAddress) }}>
 							{senderAddress ? (senderAddress.slice(0, 6) + "..." + senderAddress.slice(32, 36) + ":") : "anon: "}
@@ -986,10 +1444,10 @@ export const BoardObject = (props: BoardObjectProps) => {
 							 {text}  
 						</div>
 					 { size === 0 && (
-					<div style={{ width: 340, backgroundColor: "white" , border: '1px dashed black'}}>
+					<div style={{ width: width-16, backgroundColor: "white" }}>
                         {objkt && <div style={{display:"flex", alignItems: "center", paddingInline:6}} > 
 							<div style={{color: "black", textAlign: "left"}}> {forSale}  / {objkt.supply}  </div>
-							<div style={{ color: "black", textAlign: "center", fontSize: 20, margin:"auto" }} ><Button className={classes.buttonLarge}  title={objkt.title} onClick={() => { window.open('https://www.hicetnunc.xyz/objkt/' + objkt.id); }}>{objkt.title}</Button></div>
+							<div style={{ color: "black", textAlign: "center", fontSize: 20, margin:"auto" }} ><Button className={classes.buttonLarge}  title={objkt.title} onClick={() => { window.open('https://www.hicetnunc.art/objkt/' + objkt.id); }}>{objkt.title}</Button></div>
 							<div style={{color: "black", textAlign: "right"}}>  <Button className={classes.buttonGateBottom} title={"size"} onClick={() => { setSize(1) }}>^</Button></div>
 						</div>}
 						{ objkt && objkt.mime === "video/mp4" && 
@@ -997,22 +1455,21 @@ export const BoardObject = (props: BoardObjectProps) => {
 								<source src={HashToURL( objkt.artifact_uri, 'IPFS')} type="video/mp4" />
 							</video>}
 						{ objkt && (objkt.mime != "video/mp4" ) &&
-							<img src={HashToURL( objkt.display_uri, 'IPFS')} alt={objkt.title} width="340"  height="100%" ></img>
+							<img src={HashToURL( objkt.display_uri, 'IPFS')} alt={objkt.title} width={width-16}  height="auto" ></img>
 						}
 
 
                         <div style={{ color: "white", pointerEvents: "auto", textAlign: "center" }}>
-                            {sId != 0 && <Button className={classes.buttonBuy} title={"buy"} onClick={() => { collect(sId, sPrice) }}>{ Number(sPrice / 1000000)} tez BUY</Button>}
-                            {sId === 0 && <Button className={classes.buttonBuy} title={"buy"} onClick={() => { collect(sId, sPrice) }}>Not Available</Button>}
+                            {sId != 0 && <Button className={classes.buttonBuy} title={"buy"} onClick={() => { collect(sId, sPrice) }}>{ Number(sPrice / 1000000)} tez SWAP</Button>}
 
                         </div>
 					</div>
 				)}
 				{ size === 1 && (
-					<div style={{ width: 340, maxHeight:400, overflowY: 'auto',  backgroundColor: "white" , border: '1px dashed black'}}>
+					<div style={{ width: width-16, padding:5, maxHeight:height+300, overflowY: 'auto',  backgroundColor: "white" }}>
                         {objkt && <div style={{display:"flex", alignItems: "center", paddingInline:6}} > 
 							<div style={{color: "black", textAlign: "left"}}> {forSale}  / {objkt.supply}  </div>
-							<div style={{ color: "black", textAlign: "center", fontSize: 20, margin:"auto" }} ><Button className={classes.buttonLarge}  title={objkt.title} onClick={() => { window.open('https://www.hicetnunc.xyz/objkt/' + objkt.id); }}>{objkt.title}</Button></div>
+							<div style={{ color: "black", textAlign: "center", fontSize: 20, margin:"auto" }} ><Button className={classes.buttonLarge}  title={objkt.title} onClick={() => { window.open('https://www.hicetnunc.art/objkt/' + objkt.id); }}>{objkt.title}</Button></div>
 							<div style={{color: "black", textAlign: "right"}}>  <Button className={classes.buttonBuy} title={"size"} onClick={() => { setSize(0) }}>^</Button></div>
 						</div>}
 						{ objkt && objkt.mime === "video/mp4" && 
@@ -1020,13 +1477,12 @@ export const BoardObject = (props: BoardObjectProps) => {
 								<source src={HashToURL( objkt.artifact_uri, 'IPFS')} type="video/mp4" />
 							</video>}
 						{ objkt && (objkt.mime != "video/mp4" ) &&
-							<img src={HashToURL( objkt.display_uri, 'IPFS')} alt={objkt.title} width="340"  height="100%" ></img>
+							<img src={HashToURL( objkt.display_uri, 'IPFS')} alt={objkt.title} width={width-16}  height="auto" ></img>
 						}
 
 						{objkt &&
 								<div style={{ color: "blue", pointerEvents: "auto", textAlign: "center" }}>
-									{sId != 0 && <Button className={classes.buttonBuy} title={"buy"} onClick={() => { collect(sId, sPrice) }}>{ Number(sPrice / 1000000)} tez BUY</Button>}
-                            		{sId === 0 && <Button className={classes.buttonBuy} title={"buy"} onClick={() => { collect(sId, sPrice) }}>Not Available</Button>}
+									{sId != 0 && <Button className={classes.buttonBuy} title={"buy"} onClick={() => { collect(sId, sPrice) }}>{ Number(sPrice / 1000000)} tez SWAP</Button>}
 
 									<div>Total Sell Count: {sells}</div>
 									<div>Total Revenue: {revenue}</div>
@@ -1038,11 +1494,11 @@ export const BoardObject = (props: BoardObjectProps) => {
 											{(activeAddress && (trade.seller.address === activeAddress || trade.buyer.address === activeAddress)) ?
 												<div style={{ paddingLeft: 1, textAlign: "left", color: "green" }}>
 													 {trade.seller.name ? 
-													<Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.xyz/' + trade.seller.name); }}>{trade.seller.name}</Button> 
-													: <Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.xyz/tz/' + trade.seller.address); }}>{trade.seller.address.slice(0, 6)} ... {trade.seller.address.slice(32, 36)}</Button>} 
+													<Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.art/' + trade.seller.name); }}>{trade.seller.name}</Button> 
+													: <Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.art/tz/' + trade.seller.address); }}>{trade.seller.address.slice(0, 6)} ... {trade.seller.address.slice(32, 36)}</Button>} 
 													 {" >>> "} {trade.buyer.name 
-													? <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.xyz/' + trade.buyer.name); }}>{trade.buyer.name}</Button> 
-													: <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.xyz/tz/' + trade.buyer.address); }}>{trade.buyer.address.slice(0, 6)} ... {trade.buyer.address.slice(32, 36)} </Button>} 
+													? <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.art/' + trade.buyer.name); }}>{trade.buyer.name}</Button> 
+													: <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.art/tz/' + trade.buyer.address); }}>{trade.buyer.address.slice(0, 6)} ... {trade.buyer.address.slice(32, 36)} </Button>} 
 													<div style={{  display:"flex", alignText: "center", paddingInline:6}}> 
 														<div style={{ textAlign: "left"}}>{trade.timestamp.slice(2, 10)}</div>
 														<div style={{ textAlign: "center", margin:"auto" }}>{trade.amount} ed.</div>
@@ -1050,13 +1506,13 @@ export const BoardObject = (props: BoardObjectProps) => {
 													</div>
 												</div>
 												:
-												<div style={{ paddingLeft: 1, textAlign: "left", color: "blue",  border: '1px dashed black' }}>
+												<div style={{ paddingLeft: 1, textAlign: "left", color: "blue" }}>
 													 {trade.seller.name ? 
-													<Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.xyz/' + trade.seller.name); }}>{trade.seller.name}</Button> 
-													: <Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.xyz/tz/' + trade.seller.address); }}>{trade.seller.address.slice(0, 6)} ... {trade.seller.address.slice(32, 36)}</Button>} 
+													<Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.art/' + trade.seller.name); }}>{trade.seller.name}</Button> 
+													: <Button className={classes.button} title={"seller"} onClick={() => { window.open('https://www.hicetnunc.art/tz/' + trade.seller.address); }}>{trade.seller.address.slice(0, 6)} ... {trade.seller.address.slice(32, 36)}</Button>} 
 													 {" >>> "} {trade.buyer.name 
-													? <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.xyz/' + trade.buyer.name); }}>{trade.buyer.name}</Button> 
-													: <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.xyz/tz/' + trade.buyer.address); }}>{trade.buyer.address.slice(0, 6)} ... {trade.buyer.address.slice(32, 36)} </Button>} 
+													? <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.art/' + trade.buyer.name); }}>{trade.buyer.name}</Button> 
+													: <Button className={classes.button} title={"buyer"} onClick={() => { window.open('https://www.hicetnunc.art/tz/' + trade.buyer.address); }}>{trade.buyer.address.slice(0, 6)} ... {trade.buyer.address.slice(32, 36)} </Button>} 
 													<div style={{  display:"flex", alignText: "center", paddingInline:6}}> 
 														<div style={{ textAlign: "left"}}>{trade.timestamp.slice(2, 10)}</div>
 														<div style={{ textAlign: "center", margin:"auto" }}>{trade.amount} ed.</div>
@@ -1073,7 +1529,10 @@ export const BoardObject = (props: BoardObjectProps) => {
 
 					 </div>
 					 
-					 )
+					 )}				
+
+					 </div>
+					 </Resizable>
 				}
 				
 				{type === 'gate' && subtype === 'top' && y != 2 &&(
@@ -1088,18 +1547,102 @@ export const BoardObject = (props: BoardObjectProps) => {
 				{type === 'gate' && subtype === 'right' && x != 2 &&(
 					<Button className={classes.buttonGate} onClick={() => { routeRoom(rightRoom) }}>{">"}</Button>
 				)}
-				{type === 'trash' && <div ref={drop} style = {{ border: '3px dashed black', width:100, height: 30, backgroundColor: ((!isOver && canDrop)? "LightCoral" : (isOver && canDrop) ? "red" : "white" ), color: "black", textAlign: "center", fontSize: 20}}> Remove  </div>}
-				{type === 'minter' && <div ref={drop} style = {{ border: '3px dashed black', width:100, height: 30, backgroundColor: ((!isOver && canDrop)? "YellowGreen" : (isOver && canDrop) ? "LawnGreen" : "white" ), color: "black", textAlign: "center", fontSize: 20}}> Minter  </div>}
-				{type === 'bgHolder' && <div ref={drop} style = {{ border: '3px dashed black', width:180, height: 30, backgroundColor:((!isOver && canDrop)? "YellowGreen" : (isOver && canDrop) ? "LawnGreen" : "white" ), color: "black", textAlign: "center", fontSize: 20}}> Background </div>}
-				{type === 'wallet' && <div ref={drop} style = {{ border: '3px dashed black', height: 80, backgroundColor: ((!isOver && canDrop)? "YellowGreen" : (isOver && canDrop) ? "LawnGreen" : "white" ), color: "black", textAlign: "center", fontSize: 20}}> 
-				 Send to<br></br> ------- <br></br> 
+				{type === 'trash' && <div ref={drag}>
+					<div ref={drop} style = {{  width:100, height: 30, backgroundColor: ((!isOver && canDrop)? "LightCoral" : (isOver && canDrop) ? "red" : "white" ), color: "black", textAlign: "center", fontSize: 20}}> Remove  
+					</div>
+				</div>
+				}
+
+				{type === 'bgHolder' && <div ref={drag}>
+					<div  ref={drop} style = {{  width:180, height: 30, backgroundColor:((!isOver && canDrop)? "YellowGreen" : (isOver && canDrop) ? "LawnGreen" : "white" ), color: "black", textAlign: "center", fontSize: 20}}> Background 
+					</div>
+				</div>
+				}
+				
+				{type === 'wallet' && 
+				<div  ref={drag} style={{  padding: 3,   backgroundColor: "white" }}>
+				<div ref={drop} style = {{  height: 80, backgroundColor: ((!isOver && canDrop)? "YellowGreen" : (isOver && canDrop) ? "LawnGreen" : "white" ), color: "black", textAlign: "center", fontSize: 20}}> 
+				 	Send to<br></br> ------- <br></br> 
 				 	<Button className={classes.text} onClick={() => { routeRoom(address) }}>
 						  {domain ? domain : (address.slice(0, 6) + "..." + address.slice(32, 36))}
 					</Button> 
-				 </div>}
-			
-			</Paper>}
+				 </div>
+				 </div>
+				 }
+				{type === 'checklist' && checklist &&
+					<div style={{  backgroundColor: "white", width: 400, heigth: 600}}>
+						<h1 style={{ textAlign: "center"}}> Objectives </h1>
+						<div>
+						{(checklist.items).map((item) => (
+							<div style={{  padding: 10}}> 
+								<div style={{display:"flex", alignItems: "center" }} >  
+									<div style={{ paddingInline: 10}} >
+									{item.condition ? 
+								
+									<img alt="check" src={boxCheck} style={{ width:15, height:15}} />
 
+									: <img alt="check" src={boxBlank} style={{ width:15, height:15}} />
+									}</div>
+									{item.objective}
+								</div>
+									
+							</div>
+								
+			
+							)
+						)}
+							
+							
+						</div>
+					</div>
+				}
+				{type === 'trail' && trail && trail.length > 0 && (
+					<Resizable height={height} width={width} onResizeStop={onResizeStop} onResize={onResize}>
+						<div   style={{ padding: 3, backgroundColor: "white"  }}>
+							<div   ref={drag} style={{ width: width, height: height, textAlign: "center", overflowY: 'auto'}}>
+							Trail
+							{
+					trail.map((tr, index) =>
+						<div>
+							{
+								<Box  style={{fontSize: 16 }}>
+									<div> 
+										<div style={{color:"black", alignContent: "center", alignItems: "center", marginLeft: "auto", marginRight: "auto"}}>
+											<Button title={tr.roomId} style={{ padding: 1 }} onClick={() => { if(tr.roomId) {routeRoom(tr.roomId)} }}> {tr.domain ? tr.domain : <>{tr.roomId.length === 36 ? <>{  tr.roomId.slice(0, 6)} ... {tr.roomId.slice(32, 36)} </> : tr.roomId} </> }</Button>
+										</div>
+										
+									 </div>
+								</Box>
+							}
+						</div>
+					)
+				}
+							</div>
+						</div>
+					</Resizable>
+				)}
+				{/*type === 'player' && !isFighting &&(
+					<div > 
+						<img src={playerImage} className={ classes.pet } alt={"player"}  ></img>
+						<img src={dungeon} className={ classes.pet } alt={"dungeon"}  ></img>
+
+						<br></br>
+						<div  style={{ paddingLeft: 120}}>
+							<Button style={{ backgroundColor:"white"}}  onClick={() => { console.log("enter dungeon"); enterDungeon() }} > enter </Button>
+						</div>
+					</div>
+				)*/}
+
+				{/*type === 'player' && isFighting &&(
+					<div > 
+						<img src={playerImage} className={ classes.pet } alt={"player"}  ></img>
+						<img src={monsterImage} className={ classes.petFlipped } alt={"monsterImage"}  ></img>
+						<br></br>
+						{player.hitpoint}
+						{"    "}
+						{monster.hitpoint}
+					</div>
+				)*/}
 			
 		</div>
 	);
@@ -1207,9 +1750,7 @@ trades(order_by: {timestamp: asc}) {
 `
 const fireworkSound = new Audio("https://www.fesliyanstudios.com/play-mp3/6963");
 
-function randomInRange(min: number, max: number) {
-	return Math.random() * (max - min) + min;
-}
+
 
 // converts an ipfs hash to ipfs url
 const HashToURL = (hash, type) => {

@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { IChatRoom, IFetchResponseBase, IOrder, IPinnedItem, IUserProfile, IPlaylist, IWaterfallMessage } from '../types';
+import { IChatRoom, IFetchResponseBase, IOrder, IPinnedItem, IUserProfile, IPlaylist, IWaterfallMessage, IMonster } from '../types';
 import { IRoomData } from '../components/SettingsPanel';
 
 import React, { useCallback, useContext, useEffect } from 'react';
@@ -24,6 +24,11 @@ export interface IFirebaseContext {
 	>;
 	getAllRooms: () => Promise<IFetchResponseBase & { data?: IChatRoom[] }>;
 	movePinnedRoomItem: (
+		room: string,
+		item: IPinnedItem
+	) => Promise<IFetchResponseBase>;
+
+	resizePinnedRoomItem: (
 		room: string,
 		item: IPinnedItem
 	) => Promise<IFetchResponseBase>;
@@ -73,6 +78,14 @@ export interface IFirebaseContext {
 		roomName: string
 	) =>  Promise<IFetchResponseBase>;
 
+	getTrail:(
+		roomName: string
+	) => Promise<IFetchResponseBase & { [data] }>;
+
+	showTrail:(
+		roomName: string
+	) => Promise<IFetchResponseBase & { [data] }>;
+
 	//music player routes
 	getPlaylist:(
 		roomName: string
@@ -89,6 +102,11 @@ export interface IFirebaseContext {
 	) => Promise<IFetchResponseBase>;
 	getRaces: () => Promise<IFetchResponseBase>;
 	getAllWallets: () => Promise<IFetchResponseBase & { data?: IWallet[] }>;
+
+	enterDungeon: (
+		roomName: string,
+		obktId: string
+	) => Promise<IFetchResponseBase & { monsterData } > ;
 }
 
 export const FirebaseContext = React.createContext<IFirebaseContext>({
@@ -99,6 +117,7 @@ export const FirebaseContext = React.createContext<IFirebaseContext>({
 	getRoomPinnedItems: () => Promise.resolve({ isSuccessful: false }),
 	getAllRooms: () => Promise.resolve({ isSuccessful: false }),
 	movePinnedRoomItem: () => Promise.resolve({ isSuccessful: false }),
+	resizePinnedRoomItem: () => Promise.resolve({ isSuccessful: false }),
 	acquireTokens: () => Promise.resolve({ isSuccessful: false }),
 	createUser: () => Promise.resolve({ isSuccessful: false }),
 	updateScreenname: () => Promise.resolve({ isSuccessful: false }),
@@ -110,11 +129,14 @@ export const FirebaseContext = React.createContext<IFirebaseContext>({
 	getChat: () => Promise.resolve({ isSuccessful: false }),
 	addtoChat: () => Promise.resolve({ isSuccessful: false }),
 	deleteChat: ()=> Promise.resolve({ isSuccessful: false }),
+	getTrail: () => Promise.resolve({ isSuccessful: false }),
+	showTrail: () => Promise.resolve({ isSuccessful: false }),
 	getPlaylist: () => Promise.resolve({ isSuccessful: false }),
 	addtoPlaylist: () => Promise.resolve({ isSuccessful: false }),
 	removefromPlaylist: () => Promise.resolve({ isSuccessful: false }),
 	getRaces: () => Promise.resolve({ isSuccessful: false }),
 	getAllWallets: () => Promise.resolve({ isSuccessful: false }),
+	enterDungeon: () => Promise.resolve({ isSuccessful: false }),
 });
 
 const fetchBase =
@@ -186,6 +208,7 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 
 				const roomData = (await fetchRes.json()) as IChatRoom;
 				if(roomData.command){
+					console.log("reload")
 					window.location.reload();
 				}
 				return { isSuccessful: true, data: roomData };
@@ -282,6 +305,31 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 		): Promise<IFetchResponseBase> => {
 			const fetchRes = await fetchAuthenticated(
 				`/room/${roomName}/pin/${item.key}`,
+				{
+					method: 'PATCH',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ item, accountAddress: (activeAccount ? activeAccount.address : "")})
+				}
+			);
+
+			if (fetchRes.ok) {
+				return { isSuccessful: true };
+			}
+
+			return { isSuccessful: false, message: fetchRes.statusText };
+		},
+		[fetchAuthenticated]
+	);
+
+	const resizePinnedRoomItem = useCallback(
+		async (
+			roomName: string,
+			item: IPinnedItem
+		): Promise<IFetchResponseBase> => {
+			const fetchRes = await fetchAuthenticated(
+				`/room/${roomName}/resize/${item.key}`,
 				{
 					method: 'PATCH',
 					headers: {
@@ -568,6 +616,48 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 		[fetchAuthenticated]
 	);
 
+	//get trail
+	const getTrail = useCallback(
+		async (
+			roomName: string
+		): Promise<IFetchResponseBase & { data?: IPlaylist[] }> => {
+			const fetchRes = await fetchAuthenticated(`/room/${roomName}/getTrail`, {
+				method: 'GET'
+			});
+
+			if (fetchRes.ok) {
+				const trail = (await fetchRes.json());
+				if(trail.command){
+					console.log("reload")
+					window.location.reload();
+				}
+				return { isSuccessful: true, data: trail };
+			}
+
+			return { isSuccessful: false, message: fetchRes.statusText };
+		},
+		[fetchAuthenticated]
+	);
+
+	const showTrail = useCallback(
+		async (
+			roomName: string,
+			showTrail: boolean,
+		): Promise<IFetchResponseBase> => {
+			console.log("loooooooooool " + showTrail)
+			const fetchRes = await fetchAuthenticated(`/room/${roomName}/showTrail`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ showTrail })
+			});
+
+			return { isSuccessful: false, message: fetchRes.statusText };
+		},
+		[fetchAuthenticated]
+	);
+
 	//get playlist
 	const getPlaylist = useCallback(
 		async (
@@ -648,6 +738,29 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 		return { isSuccessful: false, message: fetchRes.statusText };
 	}, [fetchAuthenticated]);
 
+	const enterDungeon = useCallback(async (roomName: string, objktId: string): Promise<
+		IFetchResponseBase & { monsterData?: IMonster[] }
+	> => {
+		
+		const fetchRes = await fetchAuthenticated(`/room/${roomName}/enterDungeon`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ objktId: objktId })
+		});
+
+
+		if (fetchRes.ok) {
+			const monster = await fetchRes.json();
+			console.log( monster)
+			return { isSuccessful: true, monsterData: monster };
+		}
+
+		return { isSuccessful: false, message: fetchRes.statusText };
+	}, [fetchAuthenticated]);
+
+
 	return (
 		<FirebaseContext.Provider
 			value={{
@@ -658,6 +771,7 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 				unpinRoomItem,
 				getAllRooms,
 				movePinnedRoomItem,
+				resizePinnedRoomItem,
 				acquireTokens,
 				createUser,
 				updateScreenname,
@@ -670,11 +784,14 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 				getChat,
 				addtoChat,
 				deleteChat,
+				getTrail,
+				showTrail,
 				getPlaylist,
 				addtoPlaylist,
 				removefromPlaylist,
 				getRaces,
-				getAllWallets
+				getAllWallets,
+				enterDungeon
 			}}
 		>
 			{children}

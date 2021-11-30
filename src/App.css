@@ -3,7 +3,7 @@
 :root {
 	--background: #212121;
 	--primary: #89dcff;
-	font-family: "poxel-font";
+	font-family: "roboto";
 }
 
 .open-panel-button {
@@ -59,11 +59,3 @@ iframe .opensea-listings {
 	z-index: 99999999 !important;
 }
 
-@font-face {
-	font-family: 'poxel-font';
-	src: url("./assets/fonts/poxel-font.woff2") format('woff2'),
-	  url("./assets/fonts/poxel-font.woff") format('woff');
-	font-weight: 900;
-	font-style: normal;
-	font-stretch: normal;
-  }

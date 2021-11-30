@@ -1,6 +1,6 @@
 body {
 	margin: 0;
-	font-family: "poxel-font";;
+	font-family: "roboto";;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	background-color: black;
@@ -12,7 +12,7 @@ html {
 }
 
 code {
-	font-family: "poxel-font";
+	font-family: "roboto";
 }
 
 /* custom scrollbar */
@@ -43,11 +43,3 @@ code {
 	src: url(./assets/fonts/Milkstore01-Clean.ttf);
 }
 
-@font-face {
-	font-family: 'poxel-font';
-	src: url("./assets/fonts/poxel-font.woff2") format('woff2'),
-	  url("./assets/fonts/poxel-font.woff") format('woff');
-	font-weight: 900;
-	font-style: normal;
-	font-stretch: normal;
-  }

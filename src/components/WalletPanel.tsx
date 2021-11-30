@@ -15,14 +15,13 @@ const useStyles = makeStyles({
 		
 	},
 	input: {
-		fontFamily: "poxel-font",
+		fontFamily: "roboto",
 		color: "black",
 	},
 	  button: {
 		color: "black",
-		fontFamily: 'poxel-font',
+		fontFamily: 'roboto',
 		fontSize: 15,
-		border: '1px dashed black',
 		paddingInline: 5
 	},
 });
@@ -97,7 +96,7 @@ export const WalletPanel = ({ sendWallet }: IWalletPanel) => {
 			</div>
 			<div className={classes.container}>
 				<div style={{ display:'flex' }}>
-					<div style={{ paddingBlock: 5, paddingInline: 20, border: '1px dashed black'}}>
+					<div style={{ paddingBlock: 5, paddingInline: 20}}>
 						<TextField
 							inputProps={{ className: classes.input }}
 							color="primary" focused

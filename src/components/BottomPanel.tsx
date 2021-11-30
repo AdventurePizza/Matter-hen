@@ -5,7 +5,9 @@ import {
 	PanelItemEnum,
 	IMusicPlayer,
 	newPanelTypes,
-	IMetadata
+	IMetadata,
+	IChecklist,
+	ITrailObject
 } from '../types';
 import React, { useState } from 'react';
 import ThePanel from './ThePanel';
@@ -73,7 +75,11 @@ export interface IBottomPanelProps {
 	music?: IMetadata;
 	clearField: (field: string) => void;
 	routeRoom: (roomName: string) => void;
-	
+	roomId: string;
+	checklist: IChecklist;
+	setChecklist: (message: IChecklist) => void;
+	trailObject: ITrailObject;
+	setTrailObject: (trail: ITrailObject) => void;
 }
 
 
@@ -129,7 +135,12 @@ export const BottomPanel = ({
 	myLocation,
 	music,
 	clearField,
-	routeRoom
+	routeRoom,
+	roomId,
+	setChecklist,
+	checklist,
+	trailObject,
+	setTrailObject
 }: IBottomPanelProps) => {
 	const [images, setImages] = useState<IImagesState[]>([]);
 	const [videos, setQueriedVideos] = useState<Array<any>>([]);
@@ -146,7 +157,7 @@ export const BottomPanel = ({
 				paper: classes.drawerRoot
 			}}
 		>
-			<div ref={bottomPanelRef} className="bottom-panel-container"  style = {{ borderTop: '3px dashed black', }}>
+			<div ref={bottomPanelRef} className="bottom-panel-container" >
 
 			<ThePanel
 					//update bottom panel size so board background can renders correct
@@ -237,6 +248,11 @@ export const BottomPanel = ({
 					routeRoom={routeRoom}
 					//wallet board objects
 					sendWallet={(address) => {onAction('wallet', address)}}
+					roomId={roomId}
+					checklist={checklist}
+					setChecklist ={setChecklist}
+					trailObject={trailObject}
+					setTrailObject={setTrailObject}
 				/>
 			</div>
 		</Drawer>

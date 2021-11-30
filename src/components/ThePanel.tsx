@@ -34,11 +34,11 @@ import emailIcon from '../assets/buttons/email.png'
 import newroomIcon from '../assets/buttons/newroom.png'
 //panels
 import YouTubeMusicPanel from './YouTubeMusicPanel';
-import { NFTPanel } from './NFT/NFTPanel';
-import { MapsPanel } from './MapsPanel';
-import { RacePanel } from './RacePanel';
+
 import { ObjktPanel } from './ObjktPanel';
 import { WidgetPanel } from './WidgetPanel';
+import { PetPanel } from './PetPanel';
+
 import { WalletPanel } from './WalletPanel';
 import { MusicPlayerPanel } from './MusicPlayerPanel';
 import { Chat } from './Chat';
@@ -46,9 +46,10 @@ import { EmailPanel } from './EmailPanel';
 import BackgroundPanel from './BackgroundPanel';
 import { GiphyPanel } from './GiphyPanel';
 import {SettingsPanel} from './SettingsPanel';
+import {Hints} from './Hints';
 //types
 import { ISubmit } from './NFT/OrderInput';
-import { IChatRoom, newPanelTypes, IMusicPlayer, IMetadata } from '../types';
+import { IChatRoom, newPanelTypes, IMusicPlayer, IMetadata, IChecklist, ITrailObject } from '../types';
 import { IGif } from '@giphy/js-types';
 import { DAppClient } from "@airgap/beacon-sdk";
 
@@ -130,6 +131,11 @@ interface IThePanelProps {
 	routeRoom: (roomName: string) => void;
 	//wallet board objects
 	sendWallet: (address: String) => void;
+	roomId: string;
+	checklist: IChecklist;
+	setChecklist: (message: IChecklist) => void;
+	trailObject: ITrailObject;
+	setTrailObject: (trail: ITrailObject) => void;
 }
 
 interface IPanel {
@@ -189,10 +195,11 @@ const panels: IPanel[] =
 		{type: '+objkt'}, 
 		{type: '+wallet'}, 
 		{type: '+widget'}, 
+		{type: '+pet'}, 
 	] 
 const useStyles = makeStyles({
 	input: {
-		fontFamily: "poxel-font",
+		fontFamily: "roboto",
 		color: "black",
 	  },
 
@@ -270,7 +277,12 @@ const ThePanel = ({
 	clearField,
 	sendObjkt,
 	routeRoom,
-	sendWallet
+	sendWallet,
+	roomId,
+	setChecklist,
+	checklist,
+	trailObject,
+	setTrailObject
 }: IThePanelProps) => {
 	const [text, setText] = useState('');
 	const [isBackground, setisBackground] = useState(false);
@@ -280,6 +292,8 @@ const ThePanel = ({
 	const panelRef = useRef<HTMLDivElement>(null);
 	const classes = useStyles();
 	const [synced, setSynced] = useState('sync');
+	const [balance, setBalance] = useState();
+	
 	const [showUnsync, setShowUnsync] = useState(false);
 	const [activeSearch, setActiveSearch] = useState("google");
 
@@ -317,16 +331,60 @@ const ThePanel = ({
 		}
 	};
 
+	function markChecklist (index){
+		if(checklist.isVisible){
+			let items = checklist.items;
+			items[index].condition = true;
+			setChecklist({...checklist, items })
+		}
+	}
+
 	useEffect(() => {
 		async function getAcc() {
 			activeAccount = await dAppClient.getActiveAccount();
 			if (activeAccount){
-			  setSynced(activeAccount.address)
+			  setSynced(activeAccount.address.slice(0, 6) + "..." + activeAccount.address.slice(32, 36) );
+
+			  let domain;
+			  await fetch('https://api.tezos.domains/graphql', {
+				  method: 'POST',
+				  headers: {
+					  'Content-Type': 'application/json',
+				  },
+				  body: JSON.stringify({
+					  query: `
+							  {
+								  reverseRecord(address: "`+ activeAccount.address +`"){owner domain{name}}
+							  }
+							  `,
+					  variables: {
+					  },
+				  }
+				  ),
+				  })
+				  .then((res) => res.json())
+				  .then((result) => {
+					  console.log(result);	
+					  if(result.data.reverseRecord){
+							domain = result.data.reverseRecord.domain.name;
+							setSynced(domain);
+						}
+				  });
+			  
 			  setShowUnsync(true);
+			  
+			  markChecklist(0);
+
+			  fetch('https://api.tzkt.io/v1/accounts/' + activeAccount.address)
+				.then(response => response.json())
+				.then(data => setBalance(data.balance))
 			}
 			else{
 			  setSynced('sync');
 			  setShowUnsync(false);
+			  if(roomId === "onboarding"){
+				  sync();
+			  }
 			}
 		  }
 	  
@@ -343,6 +401,7 @@ const ThePanel = ({
 	
 			setSynced('sync');
 			setShowUnsync(false);
+			setBalance();
 		  });
 		}
 	  }
@@ -354,7 +413,7 @@ const ThePanel = ({
 		  // You can now do an operation request, sign request, or send another permission request to switch wallet
 
 		  console.log("Already connected:", activeAccount.address);
-	
+		  markChecklist(0);
 		  return activeAccount;
 		} else {
 		  // The user is not connected. A button should be displayed where the user can connect to his wallet.
@@ -364,9 +423,15 @@ const ThePanel = ({
 			const permissions = await dAppClient.requestPermissions();
 			console.log("Got permissions:", permissions.address);
 			setSynced(permissions.address)
+			console.log("reload")
 			window.location.reload();
 			setShowUnsync(true);
 
+			markChecklist(0);
+
+			fetch('https://api.tzkt.io/v1/accounts/' + permissions.address)
+			.then(response => response.json())
+			.then(data => setBalance(data.balance))
 		  } catch (error) {
 	
 			console.log("Got error:", error);
@@ -382,8 +447,8 @@ const ThePanel = ({
 
 	useEffect(() => {
 		if (!isImagesEmpty) return;
-		searchSubmit('trending', setImages);
-	}, [isImagesEmpty, setImages]); // Wanted empty deps but warning said to put them in.....
+		searchSubmit('sky', setImages);
+	}, [isImagesEmpty, setImages]); 
 
 	return (
 		<div ref={panelRef} className="background-container" style={{overflowY: 'auto'}}>
@@ -449,7 +514,7 @@ const ThePanel = ({
 										<img src={ giphyIcon } alt= { "giphyIcon" }  width= "30" height= "30"/> 
 									</IconButton>
 								</div>
-								<div style={{ paddingBlock: 5, paddingInline: 20, border: '1px dashed black' }}> 
+								<div style={{ paddingBlock: 5, paddingInline: 20 }}> 
 									<TextField
 										inputProps={{ className: classes.input }}
 										color="primary" focused
@@ -498,7 +563,7 @@ const ThePanel = ({
 
 			{activePanel === '+objkt' &&
 				<div  className="background-icon-list" >
-					<ObjktPanel sendObjkt= {sendObjkt} activeAddress= {activeAccount.address} />
+					<ObjktPanel sendObjkt= {sendObjkt} activeAddress= { activeAccount ? activeAccount.address : null} />
 				</div>
 			}
 			
@@ -511,14 +576,20 @@ const ThePanel = ({
 			
 			{activePanel === '+widget' &&
 				<div  className="background-icon-list" >
-					<WidgetPanel sendObjkt= {sendObjkt} activeAddress= {activeAccount.address} />
+					<WidgetPanel sendObjkt= {sendObjkt} activeAddress= {activeAccount ? activeAccount.address : null} />
+				</div>
+			}
+
+			{activePanel === '+pet' &&
+				<div  className="background-icon-list" >
+					<PetPanel sendObjkt= {sendObjkt} activeAddress= {activeAccount ? activeAccount.address : null} />
 				</div>
 			}
 
 			<div className="background-search-settings">
-				<Button className="app-btn" style={{ color: "black", fontFamily: "poxel-font" }} title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, ishaan, kelly, taner, eric, anthony, maria`}  onClick={async () => { window.open('https://adventurenetworks.net/#/'); }} >Adventure Networks </Button>
+				<Button className="app-btn" style={{ color: "black", fontFamily: "roboto" }} title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, ishaan, kelly, taner, eric, anthony, maria`}  onClick={async () => { window.open('https://adventurenetworks.net/#/'); }} >Adventure Networks </Button>
 
-				<div style={{ marginRight: "auto", display: 'flex', justifyContent: 'center', alignItems: 'center', fontFamily: "poxel-font" }} >
+				<div style={{ marginRight: "auto", display: 'flex', justifyContent: 'center', alignItems: 'center', fontFamily: "roboto" }} >
 
 					{//panel icon-buttons & special cases for newroom home & marketplace
 					panels.map((panel, index) => (
@@ -538,14 +609,14 @@ const ThePanel = ({
 						>
 							{panel.icon ? 
 								<img className = {activePanel === panel.type ? "button-disabled" : "" } src={ panel.icon } alt= { panel.type }  width= "30" height= "30"/> 
-								: (panel.type === "settings" ? <img className = {activePanel === panel.type ? "button-disabled" : "" } src={ avatar } alt= { panel.type }  width= "30" height= "30"/> : <div style={{fontFamily: "poxel-font", color: "black", fontSize: 20}}>{panel.type} </div>) 
+								: (panel.type === "settings" ? <img className = {activePanel === panel.type ? "button-disabled" : "" } src={ avatar } alt= { panel.type }  width= "30" height= "30"/> : <div style={{fontFamily: "roboto", color: "black", fontSize: 20}}>{panel.type} </div>) 
 							}
 							
 						</IconButton>
 					))}
 
 
-{				/*	<div style={{fontFamily: "poxel-font" }}>
+{				/*	<div style={{fontFamily: "roboto" }}>
 						<FormControlLabel
 							checked={checked()}
 							onChange={() => setisBackground(!isBackground)}
@@ -555,15 +626,33 @@ const ThePanel = ({
 						</div>*/}
 
 				</div>
-				<div style={{ display: 'flex', width: 441 }}>
-					<Button className="app-btn" style={{ marginLeft: "auto", color: "black", fontFamily: "poxel-font" }} title={"Hic et Nunc (h=n)"}  onClick={async () => { 
-						if(activeAccount)
-							routeRoom(activeAccount.address)
+
+				<div style={{textAlign: "center", display: 'flex', width: 741, alignItems: "center", }}>
+					<Hints></Hints>
+				</div>
+
+				<div style={{ display: 'flex', width: 341 }}>
+				<Button className="app-btn" style={{ marginLeft: "auto", color: "black", fontFamily: "roboto" }} onClick={async () => { 
+
+					}} >{balance/1000000} XTZ </Button>
+
+					<Button className="app-btn" style={{  color: "black", fontFamily: "roboto" }} title={"Hic et Nunc (h=n)"}  onClick={async () => { 
+						if(activeAccount){
+							if(roomId && activeAccount && roomId === activeAccount.address){
+								await firebaseContext.showTrail(activeAccount.address, !trailObject.show);
+
+								setTrailObject((trailObject) => ({ ...trailObject, show: !trailObject.show }))
+							}
+							else{
+								markChecklist(14);
+								routeRoom(activeAccount.address);
+							}
+						}
 						else{
 							await sync();
 						}
 					}} >{synced} </Button>
-					{showUnsync && <Button className="app-btn" style={{  color: "black", fontFamily: "poxel-font"}} title={"Hic et Nunc (h=n)"} onClick={() => { unsync() }} >unsync </Button>}
+					{showUnsync && <Button className="app-btn" style={{  color: "black", fontFamily: "roboto"}} title={"Hic et Nunc (h=n)"} onClick={() => { unsync() }} >unsync </Button>}
 				</div>
 			</div>
 		</div>

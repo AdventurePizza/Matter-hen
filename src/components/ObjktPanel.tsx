@@ -19,7 +19,7 @@ const useStyles = makeStyles((theme: Theme) =>
 		
 	},
 	input: {
-		fontFamily: "poxel-font",
+		fontFamily: "roboto",
 		color: "black",
 	  },
     root: {
@@ -110,7 +110,7 @@ export const ObjktPanel = ({ sendObjkt, activeAddress }: IObjktPanel) => {
 			if (errors) {
 			  console.error(errors)
 			}
-			const result = data.hic_et_nunc_token_holder
+			const result = data ? data.hic_et_nunc_token_holder : null;
 			console.log( result );
 			setCollections(result)
 			return result
@@ -125,7 +125,7 @@ export const ObjktPanel = ({ sendObjkt, activeAddress }: IObjktPanel) => {
 			if (errors) {
 			  console.error(errors)
 			}
-			const result = data.hic_et_nunc_token
+			const result = data ? data.hic_et_nunc_token: null;
 			console.log( result )
 			setCreations(result)
 			return result
@@ -205,7 +205,7 @@ export const ObjktPanel = ({ sendObjkt, activeAddress }: IObjktPanel) => {
 				</div>
 
 				<div style={{ display:"flex", paddingTop: 10, justifyContent: "center"}}>
-					<div style={{ paddingBlock: 5, paddingInline: 20, border: '1px dashed black' }}>
+					<div style={{ paddingBlock: 5, paddingInline: 20 }}>
 						<TextField
 							inputProps={{ className: classes.input }}
 							color="primary" focused

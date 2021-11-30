@@ -40,8 +40,10 @@
 		"react-dom": "^17.0.1",
 		"react-h5-audio-player": "^3.7.1",
 		"react-hotkeys-hook": "^3.3.2",
+		"react-idle-detector": "^1.0.1",
 		"react-places-autocomplete": "^7.3.0",
 		"react-player": "^2.9.0",
+		"react-resizable": "^3.0.4",
 		"react-router": "^5.2.0",
 		"react-router-dom": "^5.2.0",
 		"react-scripts": "^4.0.0",
@@ -102,5 +104,5 @@
 		"parcel-bundler": "^1.9.7"
 	},
 	"homepage": "https://metaverses.fyi/",
-	"proxy": "https://matter-backend.herokuapp.com/"
+	"proxy": "http://localhost:8000"
 }
