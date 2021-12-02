@@ -193,6 +193,7 @@ const panels: IPanel[] =
 	] */
 const panels: IPanel[] =
 	[
+		{type: 'settings'},
 		{type: 'home', icon: homeIcon},
 		{type: 'chat'},
 		{type: '+image'}, 
@@ -473,6 +474,7 @@ const ThePanel = ({
 						setBrushColor={setBrushColor}
 						sendAnimation={sendAnimation}
 						showChat={showChat}
+						currentSkin={currentSkin}
 					/>
 				</div>
 			}
@@ -601,7 +603,23 @@ const ThePanel = ({
 					<SkinPanel skins={skins} currentSkin={currentSkin} setCurrentSkin={setCurrentSkin} />
 				</div>
 			}
-
+			{activePanel === 'settings' && 
+				<SettingsPanel
+					setStep={setStep}
+					onSubmitUrl={onSubmitUrl}
+					onChangeName={onChangeName}
+					onChangeAvatar={onChangeAvatar}
+					onSendLocation={onSendLocation}
+					onSubmitEmail={onSubmitEmail}
+					currentAvatar={currentAvatar}
+					username={username}
+					email={email}
+					myLocation={myLocation}
+					music={music}
+					clearField={clearField}
+					setActivePanel={setActivePanel}
+				/>
+			}
 			<div className="background-search-settings">
 				<Button className="app-btn" style={{ color: currentSkin.color, fontFamily: currentSkin.fontFamily }} title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, ishaan, kelly, taner, eric, anthony, maria`}  onClick={async () => { window.open('https://adventurenetworks.net/#/'); }} >Adventure Networks </Button>
 

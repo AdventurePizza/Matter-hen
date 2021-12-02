@@ -8,6 +8,34 @@ import WhiteboardPanel from './WhiteboardPanel';
 import AnimationPanel from './AnimationPanel';
 import animationIcon from '../assets/buttons/animation.png'
 import pencilIcon from '../assets/buttons/pencil.png'
+import { ISkin } from '../types';
+
+
+interface IChatProps {
+	pinMessage: (message: string) => void;
+	sendMessage: (message: string) => void;
+	updateIsTyping: (isTyping: boolean) => void;
+	showWhiteboard: boolean;
+	updateShowWhiteboard: (show: boolean) => void;
+	setBrushColor: (color: string) => void;
+	sendAnimation: (animationText: string, animationType: string) => void;
+	pinTweet: (id: string) => void; 
+	showChat: () => void;
+	currentSkin: ISkin;
+}
+
+export const Chat = ({
+	sendMessage,
+	updateIsTyping,
+	pinMessage,
+	showWhiteboard,
+	updateShowWhiteboard,
+	setBrushColor,
+	sendAnimation,
+	pinTweet,
+	showChat,
+	currentSkin
+}: IChatProps) => {
 
 const useStyles = makeStyles({
 	container: {
@@ -22,34 +50,10 @@ const useStyles = makeStyles({
 		
 	},
 	input: {
-		fontFamily: "roboto",
-		color: "black",
+		fontFamily: currentSkin.fontFamily,
+		color: currentSkin.color,
 	}
 });
-
-interface IChatProps {
-	pinMessage: (message: string) => void;
-	sendMessage: (message: string) => void;
-	updateIsTyping: (isTyping: boolean) => void;
-	showWhiteboard: boolean;
-	updateShowWhiteboard: (show: boolean) => void;
-	setBrushColor: (color: string) => void;
-	sendAnimation: (animationText: string, animationType: string) => void;
-	pinTweet: (id: string) => void; 
-	showChat: () => void;
-}
-
-export const Chat = ({
-	sendMessage,
-	updateIsTyping,
-	pinMessage,
-	showWhiteboard,
-	updateShowWhiteboard,
-	setBrushColor,
-	sendAnimation,
-	pinTweet,
-	showChat
-}: IChatProps) => {
 	const classes = useStyles();
 
 	const [chatValue, setChatValue] = useState('');
@@ -112,7 +116,7 @@ export const Chat = ({
 						ref={textfieldRef}
 						placeholder="Your message"
 						color="primary" focused
-						variant="standard"
+						variant="outlined"
 						value={chatValue}
 						onChange={onChangeChat}
 						onKeyPress={onKeyPressChat}
