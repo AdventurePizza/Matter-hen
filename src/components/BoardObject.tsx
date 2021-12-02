@@ -18,7 +18,8 @@ import {
 	IBoardMessage,
 	IChecklist,
 	ITrail,
-	IMonster
+	IMonster,
+	ISkin
 } from '../types';
 import { Order } from './NFT/Order';
 import { CustomToken as NFT } from '../typechain/CustomToken';
@@ -85,76 +86,6 @@ const wallet = new BeaconWallet({
 Tezos.setWalletProvider(wallet)
 const  v2 = 'KT1HbQepzV1nVGg8QVznG7z4RcHseD5kwqBn';
 
-const useStyles = makeStyles({
-	container: {
-		position: 'absolute',
-		zIndex: 9999995,
-		userSelect: 'none',
-		display: 'flex'
-	},
-	paper: {
-		padding: 0,
-	},
-	buttonList: {
-		display: 'flex',
-		flexDirection: 'column'
-	},
-	text: {
-		padding: 5,
-		display: 'flex',
-		justifyContent: 'center',
-		whiteSpace: 'pre-line', //allows it to display multiple lines!,
-		color: "black",
-		backgroundColor: "white",
-		fontFamily: 'roboto',
-	},
-	button: {
-		color: "black",
-		fontFamily: 'roboto',
-		fontSize: 12
-	},
-
-    buttonLarge: {
-		color: "black",
-		fontFamily: 'roboto',
-        fontSize: 18
-	},
-
-    buttonBuy: {
-		color: "black",
-		fontFamily: 'roboto',
-        fontSize: 20
-	},
-
-    buttonSize: {
-		color: "black",
-		fontFamily: 'roboto',
-        fontSize: 10
-	},
-
-	buttonGate: {
-		color: "black",
-		backgroundColor: "white",
-		fontFamily: 'roboto',
-        fontSize: 20,
-	},
-	buttonGateBottom: {
-		color: "black",
-		backgroundColor: "white",
-		fontFamily: 'roboto',
-        fontSize: 20,
-		transform: "rotate(180deg)"
-	},
-	pet: {
-		width:100,  
-		height:"auto",
-	},
-	petFlipped: {
-		width:100,  
-		height:"auto",
-		transform: "rotateY(180deg)"
-	}
-});
 
 interface BoardObjectProps {
 	id: string;
@@ -246,6 +177,7 @@ interface BoardObjectProps {
 	trail?: ITrail;
 	//player?: IPlayer;
 	//setPlayer?: (player: IPlayer) => void;
+	currentSkin?:ISkin;
 }
 
 export const BoardObject = (props: BoardObjectProps) => {
@@ -299,6 +231,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 		updateIsTyping,
 		sendMessage,
 		trail,
+		currentSkin
 		//player,
 		//setPlayer
 	} = props;
@@ -317,6 +250,81 @@ export const BoardObject = (props: BoardObjectProps) => {
 
 	const [size, setSize] = useState(0);
 	const [highlight, setHighlight] = useState(false);
+
+	const useStyles = makeStyles({
+		container: {
+			position: 'absolute',
+			zIndex: 9999995,
+			userSelect: 'none',
+			display: 'flex'
+		},
+		paper: {
+			padding: 0,
+		},
+		buttonList: {
+			display: 'flex',
+			flexDirection: 'column',
+		},
+		text: {
+			padding: 5,
+			display: 'flex',
+			justifyContent: 'center',
+			whiteSpace: 'pre-line', //allows it to display multiple lines!,
+			color: currentSkin?.color,
+			backgroundColor: currentSkin?.backgroundColor,
+			fontFamily: currentSkin?.fontFamily,
+		},
+		button: {
+			color: currentSkin?.color,
+			backgroundColor: currentSkin?.backgroundColor,
+			fontFamily: currentSkin?.fontFamily,
+			fontSize: 12
+		},
+
+		buttonLarge: {
+			color: currentSkin?.color,
+			backgroundColor: currentSkin?.backgroundColor,
+			fontFamily: currentSkin?.fontFamily,
+			fontSize: 18
+		},
+
+		buttonBuy: {
+			color: currentSkin?.color,
+			backgroundColor: currentSkin?.backgroundColor,
+			fontFamily: currentSkin?.fontFamily,
+			fontSize: 20
+		},
+
+		buttonSize: {
+			color: currentSkin?.color,
+			backgroundColor: currentSkin?.backgroundColor,
+			fontFamily: currentSkin?.fontFamily,
+			fontSize: 10
+		},
+
+		buttonGate: {
+			color: currentSkin?.color,
+			backgroundColor: currentSkin?.backgroundColor,
+			fontFamily: currentSkin?.fontFamily,
+			fontSize: 20,
+		},
+		buttonGateBottom: {
+			color: currentSkin?.color,
+			backgroundColor: currentSkin?.backgroundColor,
+			fontFamily: currentSkin?.backgroundColor,
+			fontSize: 20,
+			transform: "rotate(180deg)"
+		},
+		pet: {
+			width:100,  
+			height:"auto",
+		},
+		petFlipped: {
+			width:100,  
+			height:"auto",
+			transform: "rotateY(180deg)"
+		}
+	});
 	const classes = useStyles();
 
 	const { socket } = useContext(AppStateContext);
@@ -338,7 +346,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 	let activeAddress = activeAccount ? activeAccount.address : "";
 	let leftRoom, rightRoom, topRoom, bottomRoom;
 	let x, y;
-	let playerLocal = {hitpoint: player.hitpoint, }
+
 
 	function randomInRange(min: number, max: number) {
 		return Math.random() * (max - min) + min;
@@ -648,7 +656,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 		  console.log(result);
       }
 
-	const delay = ms => new Promise(res => setTimeout(res, ms));
+	/*const delay = ms => new Promise(res => setTimeout(res, ms));
 	async function enterDungeon() {
 
 		
@@ -669,7 +677,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 			room = x;
 		else
 			room = "0,0";
-		console.log ("room "+ room + " palyer " + player.objktId); 
+		//console.log ("room "+ room + " palyer " + player.objktId); 
 		//sentPlayerStats&getEnemyStats(roomId) (server calcualtes results and records it on firebase, then sents enemy stat for visualising fight)
 		const {
 				isSuccessful,
@@ -707,7 +715,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 
 
 
-      }
+      }*/
 
 	useEffect(() => {
 		if (objktId) {
@@ -1155,6 +1163,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 			style={{
 				top: type === "pet" ? petTop : top,
 				left: type === "pet" ? petLeft : left,
+				border: currentSkin?.border,
 				/* zIndex: isHovering ? 99999999 : 'auto' */
 				zIndex: (isHovering || type === 'chat' || type === 'gate'  || type === 'trash' || type === 'minter' || type === 'bgHolder' || id === 'warning' || !hide) ? 99999999 : 99999998
 			}}
@@ -1197,8 +1206,8 @@ export const BoardObject = (props: BoardObjectProps) => {
 				
 				{type === 'objktStat' && size === 0 && objkt && (
 					<Resizable height={height} width={width} onResizeStop={onResizeStop} onResize={onResize}>
-					<div   style={{ height:height, width:width, padding: 3,   backgroundColor: "white" }}>
-						<div  ref={drag} style={{ alignItems: "center", padding: 10 }}>
+					<div   style={{ height:height, width:width, padding: 3,   backgroundColor: currentSkin?.backgroundColor }}>
+						<div  ref={drag} style={{ alignItems: "center", padding: 10, backgroundColor: currentSkin?.backgroundColor }}>
 						        <iframe
 									scrolling="no"
 									width={width-26}
@@ -1207,7 +1216,6 @@ export const BoardObject = (props: BoardObjectProps) => {
 									src={`${HashToURL( objkt.artifact_uri, 'IPFS')}/?creator=true&viewer=true&objkt=${objktId}`}
 									sandbox="allow-scripts allow-same-origin " 
 									allow="accelerometer; camera; gyroscope; microphone; xr-spatial-tracking;"
-
 									/>
 						</div>
 					</div>
@@ -1215,20 +1223,20 @@ export const BoardObject = (props: BoardObjectProps) => {
 				)} 
 				{type === 'objkt' && size === 0 && (
 					<Resizable height={height} width={width} onResizeStop={onResizeStop} onResize={onResize}>
-					<div   style={{ height:height, width:width, padding: 3,   backgroundColor: "white" }}>
+					<div   style={{ height:height, width:width, padding: 3, backgroundColor: currentSkin?.backgroundColor }}>
 
-					<div ref={drag}  style={{ width: width, backgroundColor: "white" }}>
+					<div ref={drag}  style={{ width: width, backgroundColor: currentSkin?.backgroundColor }}>
                         {objkt && <div style={{display:"flex", alignItems: "center", paddingInline:6}} > 
-							<div style={{color: "black", textAlign: "left"}}> {forSale}  / {objkt.supply}  </div>
-							<div style={{ color: "black", textAlign: "center", fontSize: 20, margin:"auto" }} ><Button className={classes.buttonLarge}  title={objkt.title} onClick={() => { window.open('https://www.hicetnunc.art/objkt/' + objkt.id); }}>{objkt.title}</Button></div>
-							<div style={{color: "black", textAlign: "right"}}>  <Button className={classes.buttonGateBottom} title={"size"} onClick={() => { setSize(1) }}>^</Button></div>
+							<div style={{color: currentSkin?.color, textAlign: "left"}}> {forSale}  / {objkt.supply}  </div>
+							<div style={{color: currentSkin?.color, textAlign: "center", fontSize: 20, margin:"auto" }} ><Button className={classes.buttonLarge}  title={objkt.title} onClick={() => { window.open('https://www.hicetnunc.art/objkt/' + objkt.id); }}>{objkt.title}</Button></div>
+							<div style={{color: currentSkin?.color, textAlign: "right"}}>  <Button className={classes.buttonGateBottom} title={"size"} onClick={() => { setSize(1) }}>^</Button></div>
 						</div>}
 						{ objkt && objkt.mime === "video/mp4" && 
 							<video  width="100%" title={"Shell Sort"} autoPlay={true} muted controls controlsList="nodownload" loop  >
 								<source src={HashToURL( objkt.artifact_uri, 'IPFS')} type="video/mp4" />
 							</video>}
 						{ objkt && objkt.mime === "application/x-directory" && 
-								<div style={{ padding: 10, overflowY: 'auto',  backgroundColor: "white" }}>
+								<div style={{ padding: 10, overflowY: 'auto',  backgroundColor: currentSkin?.backgroundColor }}>
 								<div style={{alignItems: "center"}}>
 										<iframe
 											scrolling="no"
@@ -1246,7 +1254,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 						{ objkt && (objkt.mime != "video/mp4" && objkt.mime != "application/x-directory" ) &&
 							<img src={HashToURL( objkt.display_uri, 'IPFS')} alt={objkt.title} width={width}  height="auto" ></img>
 						}
-                        <div style={{ color: "white", textAlign: "center" }}>
+                        <div style={{ color: currentSkin?.backgroundColor, textAlign: "center" }}>
                             {sId != 0 && <Button className={classes.buttonBuy} title={"buy"} onClick={() => { collect(sId, sPrice) }}>{ Number(sPrice / 1000000)} tez SWAP</Button>}
                         </div>
 					</div>
@@ -1258,9 +1266,9 @@ export const BoardObject = (props: BoardObjectProps) => {
 				{type === 'objkt' && size === 1 && (
 
 					<Resizable height={height} width={width} onResizeStop={onResizeStop} onResize={onResize}>
-					<div   style={{ height:height, width:width, padding: 3,   backgroundColor: "white" }}>
+					<div   style={{ height:height, width:width, padding: 3, backgroundColor: currentSkin?.backgroundColor }}>
 
-					<div ref={drag}  style={{ width: width, height:height, overflowY: 'auto',  backgroundColor: "white" }}>
+					<div ref={drag}  style={{ width: width, height:height, overflowY: 'auto',  backgroundColor: currentSkin?.backgroundColor }}>
                         {objkt && <div style={{display:"flex", alignItems: "center", paddingInline:6}} > 
 							<div style={{color: "black", textAlign: "left"}}> {forSale}  / {objkt.supply}  </div>
 							<div style={{ color: "black", textAlign: "center", fontSize: 20, margin:"auto" }} ><Button className={classes.buttonLarge}  title={objkt.title} onClick={() => { window.open('https://www.hicetnunc.art/objkt/' + objkt.id); }}>{objkt.title}</Button></div>
@@ -1271,7 +1279,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 								<source src={HashToURL( objkt.artifact_uri, 'IPFS')} type="video/mp4" />
 							</video>}
 							{ objkt && objkt.mime === "application/x-directory" && 
-								<div style={{ padding: 10, overflowY: 'auto',  backgroundColor: "white" }}>
+								<div style={{ padding: 10, overflowY: 'auto',  backgroundColor: currentSkin?.backgroundColor }}>
 								<div style={{ alignItems: "center"}}>
 										<iframe
 											scrolling="no"
@@ -1342,7 +1350,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 				)}
 				{type === 'chat' && chat && setActivePanel && (
 					<Resizable height={height} width={width} onResizeStop={onResizeStop} onResize={onResize}>
-					<div  style={{ height:height, width:width, backgroundColor: "white"}}>
+					<div  style={{ height:height, width:width, backgroundColor: currentSkin?.backgroundColor}}>
 						<div ref={drag}  >
 							<div >
 							<WaterfallChat
@@ -1353,6 +1361,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 								sendMessage={sendMessage}
 								height={height-60}
 								width={width}
+								currentSkin={currentSkin}
 							/>
 							</div>
 						</div>
@@ -1369,11 +1378,11 @@ export const BoardObject = (props: BoardObjectProps) => {
 				{type === 'message' && 
 				
 				<Resizable height={height} width={width} onResizeStop={onResizeStop} onResize={onResize}>
-				<div   style={{ height:height, width:width, padding: 3,   backgroundColor: "white" }}>
+				<div   style={{ height:height, width:width, padding: 3,   backgroundColor: currentSkin?.backgroundColor }}>
 				{((imgSrc && (
 
 							<div ref={drag} style={{ width: width, height: height }}> 					 	 
-							<div style={{  alignItems: "center" }}> 
+							<div style={{  alignItems: "center" , color:currentSkin?.color}}> 
 
 							<Button className={classes.text} onClick={() => { if(senderAddress) routeRoom(senderAddress) }}>
 								{senderAddress ? (senderAddress.slice(0, 6) + "..." + senderAddress.slice(32, 36) + ":") : "anon: "}
@@ -1394,7 +1403,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 					</Button>
 					 {text}  
 				</div>
-					<div style = {{ height: 80, backgroundColor: ((!isOver && canDrop)? "YellowGreen" : (isOver && canDrop) ? "LawnGreen" : "white" ), color: "black", textAlign: "center", fontSize: 20}}> 
+					<div style = {{ height: 80, backgroundColor: ((!isOver && canDrop)? "YellowGreen" : (isOver && canDrop) ? "LawnGreen" : currentSkin?.backgroundColor ), color: currentSkin?.color, textAlign: "center", fontSize: 20}}> 
 						Send to<br></br> ------- <br></br> 
 							<Button className={classes.text} onClick={() => { routeRoom(address) }}>
 								{domain ? domain : (address.slice(0, 6) + "..." + address.slice(32, 36))}
@@ -1412,8 +1421,8 @@ export const BoardObject = (props: BoardObjectProps) => {
 					 </div>
 
 					||objkt &&  objktId && isWidget &&
-						<div ref={drag} style={{  height:height-6, overflowY: 'auto',  backgroundColor: "white" }}>
-							<div style={{ alignItems: "center" }}>   
+						<div ref={drag} style={{  height:height-6, overflowY: 'auto',  backgroundColor: currentSkin?.backgroundColor }}>
+							<div style={{ alignItems: "center", color:currentSkin?.color }}>   
 							<Button className={classes.text} onClick={() => { if(senderAddress) routeRoom(senderAddress) }}>
 							{senderAddress ? (senderAddress.slice(0, 6) + "..." + senderAddress.slice(32, 36) + ":") : "anon: "}
 							</Button>
@@ -1437,18 +1446,18 @@ export const BoardObject = (props: BoardObjectProps) => {
 					 || objkt &&  objktId && !isWidget &&
 
 					 <div ref={drag} style={{ width: width-6, padding: 5 }}> 
-					 	 <div style={{ alignItems: "center" }}>   
+					 	 <div style={{ alignItems: "center", color:currentSkin?.color }}>   
 							<Button className={classes.text} onClick={() => { if(senderAddress) routeRoom(senderAddress) }}>
 							{senderAddress ? (senderAddress.slice(0, 6) + "..." + senderAddress.slice(32, 36) + ":") : "anon: "}
 							</Button>
 							 {text}  
 						</div>
 					 { size === 0 && (
-					<div style={{ width: width-16, backgroundColor: "white" }}>
+					<div style={{ width: width-16, backgroundColor: currentSkin?.backgroundColor}}>
                         {objkt && <div style={{display:"flex", alignItems: "center", paddingInline:6}} > 
-							<div style={{color: "black", textAlign: "left"}}> {forSale}  / {objkt.supply}  </div>
-							<div style={{ color: "black", textAlign: "center", fontSize: 20, margin:"auto" }} ><Button className={classes.buttonLarge}  title={objkt.title} onClick={() => { window.open('https://www.hicetnunc.art/objkt/' + objkt.id); }}>{objkt.title}</Button></div>
-							<div style={{color: "black", textAlign: "right"}}>  <Button className={classes.buttonGateBottom} title={"size"} onClick={() => { setSize(1) }}>^</Button></div>
+							<div style={{color: currentSkin?.color, textAlign: "left"}}> {forSale}  / {objkt.supply}  </div>
+							<div style={{ color: currentSkin?.color, textAlign: "center", fontSize: 20, margin:"auto" }} ><Button className={classes.buttonLarge}  title={objkt.title} onClick={() => { window.open('https://www.hicetnunc.art/objkt/' + objkt.id); }}>{objkt.title}</Button></div>
+							<div style={{color: currentSkin?.color, textAlign: "right"}}>  <Button className={classes.buttonGateBottom} title={"size"} onClick={() => { setSize(1) }}>^</Button></div>
 						</div>}
 						{ objkt && objkt.mime === "video/mp4" && 
 							<video  width="100%" title={"Shell Sort"} autoPlay={true} muted controls controlsList="nodownload" loop  >
@@ -1459,18 +1468,18 @@ export const BoardObject = (props: BoardObjectProps) => {
 						}
 
 
-                        <div style={{ color: "white", pointerEvents: "auto", textAlign: "center" }}>
+                        <div style={{ color: currentSkin?.color, pointerEvents: "auto", textAlign: "center" }}>
                             {sId != 0 && <Button className={classes.buttonBuy} title={"buy"} onClick={() => { collect(sId, sPrice) }}>{ Number(sPrice / 1000000)} tez SWAP</Button>}
 
                         </div>
 					</div>
 				)}
 				{ size === 1 && (
-					<div style={{ width: width-16, padding:5, maxHeight:height+300, overflowY: 'auto',  backgroundColor: "white" }}>
+					<div style={{ width: width-16, padding:5, maxHeight:height+300, overflowY: 'auto',  backgroundColor: currentSkin?.backgroundColor }}>
                         {objkt && <div style={{display:"flex", alignItems: "center", paddingInline:6}} > 
-							<div style={{color: "black", textAlign: "left"}}> {forSale}  / {objkt.supply}  </div>
-							<div style={{ color: "black", textAlign: "center", fontSize: 20, margin:"auto" }} ><Button className={classes.buttonLarge}  title={objkt.title} onClick={() => { window.open('https://www.hicetnunc.art/objkt/' + objkt.id); }}>{objkt.title}</Button></div>
-							<div style={{color: "black", textAlign: "right"}}>  <Button className={classes.buttonBuy} title={"size"} onClick={() => { setSize(0) }}>^</Button></div>
+							<div style={{color: currentSkin?.color, textAlign: "left"}}> {forSale}  / {objkt.supply}  </div>
+							<div style={{ color: currentSkin?.color, textAlign: "center", fontSize: 20, margin:"auto" }} ><Button className={classes.buttonLarge}  title={objkt.title} onClick={() => { window.open('https://www.hicetnunc.art/objkt/' + objkt.id); }}>{objkt.title}</Button></div>
+							<div style={{color: currentSkin?.color, textAlign: "right"}}>  <Button className={classes.buttonBuy} title={"size"} onClick={() => { setSize(0) }}>^</Button></div>
 						</div>}
 						{ objkt && objkt.mime === "video/mp4" && 
 							<video  width="100%" title={"Shell Sort"} autoPlay={true} muted controls controlsList="nodownload" loop  >
@@ -1548,20 +1557,20 @@ export const BoardObject = (props: BoardObjectProps) => {
 					<Button className={classes.buttonGate} onClick={() => { routeRoom(rightRoom) }}>{">"}</Button>
 				)}
 				{type === 'trash' && <div ref={drag}>
-					<div ref={drop} style = {{  width:100, height: 30, backgroundColor: ((!isOver && canDrop)? "LightCoral" : (isOver && canDrop) ? "red" : "white" ), color: "black", textAlign: "center", fontSize: 20}}> Remove  
+					<div ref={drop} style = {{  width:100, height: 30, backgroundColor: ((!isOver && canDrop)? "LightCoral" : (isOver && canDrop) ? "red" : currentSkin?.backgroundColor ), color: currentSkin?.color, textAlign: "center", fontSize: 20}}> Remove  
 					</div>
 				</div>
 				}
 
 				{type === 'bgHolder' && <div ref={drag}>
-					<div  ref={drop} style = {{  width:180, height: 30, backgroundColor:((!isOver && canDrop)? "YellowGreen" : (isOver && canDrop) ? "LawnGreen" : "white" ), color: "black", textAlign: "center", fontSize: 20}}> Background 
+					<div  ref={drop} style = {{  width:180, height: 30, backgroundColor:((!isOver && canDrop)? "YellowGreen" : (isOver && canDrop) ? "LawnGreen" : currentSkin?.backgroundColor ), color: currentSkin?.color, textAlign: "center", fontSize: 20}}> Background 
 					</div>
 				</div>
 				}
 				
 				{type === 'wallet' && 
-				<div  ref={drag} style={{  padding: 3,   backgroundColor: "white" }}>
-				<div ref={drop} style = {{  height: 80, backgroundColor: ((!isOver && canDrop)? "YellowGreen" : (isOver && canDrop) ? "LawnGreen" : "white" ), color: "black", textAlign: "center", fontSize: 20}}> 
+				<div  ref={drag} style={{  padding: 3,   backgroundColor: currentSkin?.backgroundColor }}>
+				<div ref={drop} style = {{  height: 80, backgroundColor: ((!isOver && canDrop)? "YellowGreen" : (isOver && canDrop) ? "LawnGreen" : currentSkin?.backgroundColor ), color: currentSkin?.color, textAlign: "center", fontSize: 20}}> 
 				 	Send to<br></br> ------- <br></br> 
 				 	<Button className={classes.text} onClick={() => { routeRoom(address) }}>
 						  {domain ? domain : (address.slice(0, 6) + "..." + address.slice(32, 36))}
@@ -1598,7 +1607,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 				}
 				{type === 'trail' && trail && trail.length > 0 && (
 					<Resizable height={height} width={width} onResizeStop={onResizeStop} onResize={onResize}>
-						<div   style={{ padding: 3, backgroundColor: "white"  }}>
+						<div   style={{ padding: 3, backgroundColor: currentSkin?.backgroundColor, color: currentSkin?.color, fontFamily: currentSkin?.fontFamily }}>
 							<div   ref={drag} style={{ width: width, height: height, textAlign: "center", overflowY: 'auto'}}>
 							Trail
 							{
@@ -1607,8 +1616,8 @@ export const BoardObject = (props: BoardObjectProps) => {
 							{
 								<Box  style={{fontSize: 16 }}>
 									<div> 
-										<div style={{color:"black", alignContent: "center", alignItems: "center", marginLeft: "auto", marginRight: "auto"}}>
-											<Button title={tr.roomId} style={{ padding: 1 }} onClick={() => { if(tr.roomId) {routeRoom(tr.roomId)} }}> {tr.domain ? tr.domain : <>{tr.roomId.length === 36 ? <>{  tr.roomId.slice(0, 6)} ... {tr.roomId.slice(32, 36)} </> : tr.roomId} </> }</Button>
+										<div style={{color:currentSkin?.color, fontFamily: currentSkin?.fontFamily,  alignContent: "center", alignItems: "center", marginLeft: "auto", marginRight: "auto"}}>
+											<Button title={tr.roomId} style={{ padding: 1, fontFamily: currentSkin?.fontFamily, color:currentSkin?.color }} onClick={() => { if(tr.roomId) {routeRoom(tr.roomId)} }}> {tr.domain ? tr.domain : <>{tr.roomId.length === 36 ? <>{  tr.roomId.slice(0, 6)} ... {tr.roomId.slice(32, 36)} </> : tr.roomId} </> }</Button>
 										</div>
 										
 									 </div>

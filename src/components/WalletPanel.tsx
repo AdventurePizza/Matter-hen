@@ -2,32 +2,12 @@
 import { Button, TextField, makeStyles,	Avatar, IconButton,	createStyles,  Theme } from '@material-ui/core';
 import React, { useState, useContext, useEffect } from 'react';
 import { FirebaseContext } from '../contexts/FirebaseContext';
+import { ISkin } from '../types';
 
-const useStyles = makeStyles({
-	container: {
-		display: 'flex',
-		alignItems: 'center',
-		justifyContent: 'center',
-		padding: 10,
-		'& > *': {
-			marginRight: 10
-		}
-		
-	},
-	input: {
-		fontFamily: "roboto",
-		color: "black",
-	},
-	  button: {
-		color: "black",
-		fontFamily: 'roboto',
-		fontSize: 15,
-		paddingInline: 5
-	},
-});
 
 interface IWalletPanel {
 	sendWallet: (address: string) => void;
+	currentSkin: ISkin;
 }
 /*
 <div  className="background-icon-list"  style={{ display: "flex", width: "100%", overflowY: "auto"}}>
@@ -47,8 +27,32 @@ creations.map(({ display_uri, id}) => (
 
 </div>
 */
-export const WalletPanel = ({ sendWallet }: IWalletPanel) => {
+export const WalletPanel = ({ sendWallet, currentSkin }: IWalletPanel) => {
 	const firebaseContext = useContext(FirebaseContext);
+	const useStyles = makeStyles({
+		container: {
+			display: 'flex',
+			alignItems: 'center',
+			justifyContent: 'center',
+			padding: 10,
+			'& > *': {
+				marginRight: 10
+			}
+			
+		},
+		input: {
+			fontFamily: currentSkin.fontFamily,
+			color: currentSkin.color,
+		},
+		  button: {
+			fontFamily: currentSkin.fontFamily,
+			color: currentSkin.color,	
+			border: currentSkin.border,	
+			fontSize: 15,
+			paddingInline: 5
+		},
+	});
+	
 	const classes = useStyles();
 	const [inputAddress, setInputAddress] = useState('');
 	const [wallets, setWallets] = useState();
@@ -99,16 +103,17 @@ export const WalletPanel = ({ sendWallet }: IWalletPanel) => {
 					<div style={{ paddingBlock: 5, paddingInline: 20}}>
 						<TextField
 							inputProps={{ className: classes.input }}
-							color="primary" focused
+							color="primary" 
+							focused
 							value={inputAddress}
-							variant="standard"
+							variant="outlined"
 							onChange={(e) => setInputAddress(e.target.value)}
 							placeholder="enter wallet address"
 							className={classes.input}
 						/>
 					</div>
 						<Button
-							variant="contained" color="primary"
+							className={classes.button}
 							onClick={() => {
 								sendWallet (inputAddress);
 							}}

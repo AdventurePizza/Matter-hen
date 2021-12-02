@@ -34,7 +34,8 @@ import {
 	IChecklist,
 	IPet,
 	ITrailObject,
-	IPlayer
+	IPlayer,
+	ISkin
 } from '../types';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { IMusicNoteProps, MusicNote } from './MusicNote';
@@ -157,6 +158,7 @@ interface IBoardProps {
 	updateIsTyping: (isTyping: boolean) => void;
 	sendMessage: (message: string) => void;
 	trailObject: ITrailObject;
+	currentSkin: ISkin;
 	//player: IPlayer;
 	//setPlayer: (player: IPlayer) => void;
 }
@@ -251,6 +253,7 @@ export const Board = ({
 	updateIsTyping,
 	sendMessage,
 	trailObject,
+	currentSkin
 	//player,
 	//setPlayer
 }: IBoardProps) => {
@@ -375,6 +378,7 @@ export const Board = ({
 				sendMessage={sendMessage}
 				initWidth={waterfallChat.width}
 				initHeight={waterfallChat.height}
+				currentSkin={currentSkin}
 			/>}
 
 			{!hideAllPins && trailObject.show &&<BoardObject
@@ -388,6 +392,7 @@ export const Board = ({
 				initWidth={trailObject.width}
 				initHeight={trailObject.height}
 				routeRoom={routeRoom}
+				currentSkin={currentSkin}
 			/>}
 
 			{!hideAllPins && <BoardObject
@@ -406,6 +411,7 @@ export const Board = ({
 				unpinMessage={unpinMessage}
 				checklist={checklist}
 				setChecklist={setChecklist}
+				currentSkin={currentSkin}
 			/>}
 
 			{/*player && <BoardObject
@@ -462,6 +468,7 @@ export const Board = ({
 				unpinGif={unpinGif}
 				checklist={checklist}
 				setChecklist={setChecklist}
+				currentSkin={currentSkin}
 			/>}
 
 			{/*
@@ -487,6 +494,7 @@ export const Board = ({
 				routeRoom={routeRoom}
 				top={10}
 				left={900}
+				currentSkin={currentSkin}
 			/>}
 
 			{showGates &&<BoardObject
@@ -498,6 +506,7 @@ export const Board = ({
 				routeRoom={routeRoom}
 				top={500}
 				left={10}
+				currentSkin={currentSkin}
 			/>}
 
 			{showGates &&<BoardObject
@@ -509,6 +518,7 @@ export const Board = ({
 				routeRoom={routeRoom}
 				top={800}
 				left={900}
+				currentSkin={currentSkin}
 			/>}
 
 			{showGates &&<BoardObject
@@ -520,6 +530,7 @@ export const Board = ({
 				routeRoom={routeRoom}
 				top={500}
 				left={1780}
+				currentSkin={currentSkin}
 			/>}
 
 
@@ -566,6 +577,7 @@ export const Board = ({
 								initHeight={bMessage.height}		
 								checklist={checklist}
 								setChecklist={setChecklist}	
+								currentSkin={currentSkin}
 							/>
 						</CSSTransition>
 					))}
@@ -598,6 +610,7 @@ export const Board = ({
 								unpinText={unpinText}
 								setModalState={setModalState}
 								setPreparedMessage={setPreparedMessage}
+								currentSkin={currentSkin}
 							/>
 						</CSSTransition>
 					))}
@@ -631,7 +644,7 @@ export const Board = ({
 								initHeight={objkt.height}
 								checklist={checklist}
 								setChecklist={setChecklist}
-								
+								currentSkin={currentSkin}
 							/>
 						</CSSTransition>
 					))}
@@ -750,6 +763,7 @@ export const Board = ({
 									initHeight={text.height}
 									checklist={checklist}
 									setChecklist={setChecklist}
+									currentSkin={currentSkin}
 								/>
 							) : null}
 						</CSSTransition>

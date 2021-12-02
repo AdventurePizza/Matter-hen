@@ -7,7 +7,8 @@ import {
 	newPanelTypes,
 	IMetadata,
 	IChecklist,
-	ITrailObject
+	ITrailObject,
+	ISkin
 } from '../types';
 import React, { useState } from 'react';
 import ThePanel from './ThePanel';
@@ -80,16 +81,13 @@ export interface IBottomPanelProps {
 	setChecklist: (message: IChecklist) => void;
 	trailObject: ITrailObject;
 	setTrailObject: (trail: ITrailObject) => void;
+	currentSkin: ISkin;
+	setCurrentSkin: (skin: ISkin) => void;
+	skins: ISkin[];
 }
 
 
-const useStyles = makeStyles(() => ({
-	drawerRoot: {
-		width: '100%',
-		zIndex: 99999999,
-		backgroundColor: 'white',
-	}
-}));
+
 //backgroundColor: 'black',
 export const BottomPanel = ({
 	bottomPanelRef,
@@ -140,11 +138,24 @@ export const BottomPanel = ({
 	setChecklist,
 	checklist,
 	trailObject,
-	setTrailObject
+	setTrailObject,
+	currentSkin,
+	setCurrentSkin,
+	skins
 }: IBottomPanelProps) => {
 	const [images, setImages] = useState<IImagesState[]>([]);
 	const [videos, setQueriedVideos] = useState<Array<any>>([]);
 	const [lastQuery, setLastQuery] = useState<string>("");
+	const useStyles = makeStyles(() => ({
+		drawerRoot: {
+			width: '100%',
+			zIndex: 99999999,
+			backgroundColor: currentSkin.backgroundColor,
+			fontFamily: currentSkin.fontFamily,
+			color: currentSkin.color,
+			borderTop: currentSkin.border
+		}
+	}));
 	const classes = useStyles();
 
 	return (
@@ -152,7 +163,6 @@ export const BottomPanel = ({
 			variant="persistent"
 			anchor="bottom"
 			open={isOpen}
-			// className="bottom-panel-drawer"
 			classes={{
 				paper: classes.drawerRoot
 			}}
@@ -253,6 +263,9 @@ export const BottomPanel = ({
 					setChecklist ={setChecklist}
 					trailObject={trailObject}
 					setTrailObject={setTrailObject}
+					skins={skins}
+					currentSkin={currentSkin}
+					setCurrentSkin={setCurrentSkin}
 				/>
 			</div>
 		</Drawer>

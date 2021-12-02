@@ -2,38 +2,15 @@
 import { Button, TextField, makeStyles,	Avatar, IconButton,	createStyles,  Theme } from '@material-ui/core';
 import React, { useEffect, useState } from 'react';
 import objkt542098 from '../assets/542098.png';
+import { ISkin } from '../types';
 
 
 
-const useStyles = makeStyles((theme: Theme) =>
-  createStyles({
-	container: {
-		display: 'flex',
-		alignItems: 'center',
-		justifyContent: 'center',
-		padding: 10,
-		width: '100%',
-		'& > *': {
-			marginRight: 10
-		}
-		
-	},
-	input: {
-		fontFamily: "roboto",
-		color: "black",
-	  },
-    root: {
-      display: 'flex',
-    },
-    size: {
-      width: theme.spacing(12),
-      height: theme.spacing(12),
-    },
-  }),
-);
+
 interface IObjktPanel {
 	sendObjkt: (id: string, type: string) => void;
 	activeAddress: string;
+	currentSkin: ISkin;
 }
 
 /*
@@ -82,11 +59,46 @@ query creatorGallery($address: String!) {
 }
 `
 
-export const WidgetPanel = ({ sendObjkt, activeAddress }: IObjktPanel) => {
+export const WidgetPanel = ({ sendObjkt, activeAddress, currentSkin }: IObjktPanel) => {
+	const useStyles = makeStyles((theme: Theme) =>
+		createStyles({
+			container: {
+				display: 'flex',
+				alignItems: 'center',
+				justifyContent: 'center',
+				padding: 10,
+				width: '100%',
+				'& > *': {
+					marginRight: 10
+				}
+				
+			},
+			input: {
+				fontFamily: currentSkin.fontFamily,
+				color: currentSkin.color,
+			},
+			button: {
+			  fontFamily: currentSkin.fontFamily,
+			  color: currentSkin.color,	
+			  border: currentSkin.border,	
+			  fontSize: 15,
+			  paddingInline: 5
+		 	 },
+
+			root: {
+			display: 'flex',
+			},
+			size: {
+			width: theme.spacing(12),
+			height: theme.spacing(12),
+			},
+		}),
+	);
 	const classes = useStyles();
 	const [inputObjkt, setInputObjkt] = useState('');
 	const [collections, setCollections] = useState([]);
 	const [creations, setCreations] = useState([]);
+	
 
 	useEffect(() => {
 		async function fetchGraphQL(operationsDoc, operationName, variables) {
@@ -206,7 +218,7 @@ export const WidgetPanel = ({ sendObjkt, activeAddress }: IObjktPanel) => {
 							inputProps={{ className: classes.input }}
 							color="primary" focused
 							value={inputObjkt}
-							variant="standard"
+							variant="outlined"
 							onChange={(e) => setInputObjkt(e.target.value)}
 							placeholder="enter interactive objkt id"
 							onKeyPress={onKeyPressChat}
@@ -214,7 +226,8 @@ export const WidgetPanel = ({ sendObjkt, activeAddress }: IObjktPanel) => {
 						/>
 					</div>
 						<Button
-							variant="contained" color="primary"
+							className={classes.button}
+
 							onClick={() => {
 								sendObjkt (inputObjkt, 'objktStat');
 							}}

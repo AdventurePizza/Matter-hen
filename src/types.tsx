@@ -489,12 +489,17 @@ export interface IPlayer{
 	objktId: string;
 }
 
-export interface IMonster{
-
-	attack: number;
-	hitpoint: number;
+export interface ISkin{
+	fontFamily: string;
+	backgroundColor: string;
+	border: string;
+	color: string;
 }
 
+export interface ISkinOwnership{
+	index: number;
+	name: string;
+}
 
 export type OrderWithMetadata = IOrder & { metadata?: INFTMetadata };
 

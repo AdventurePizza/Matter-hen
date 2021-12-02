@@ -413,9 +413,21 @@ function App() {
 	const [pets, setPets] = useState<IPet[]>([]);
 
 	//const [player, setPlayer] = useState<IPlayer[]>([]);
+	const [skins, setSkins] = useState<ISkin[]>(
+		[	
+			{fontFamily: "roboto", backgroundColor: "white", border: "none", color: "black"},
+			{fontFamily: "poxel-font", backgroundColor: "black", border: "2px dashed red", color: "red"}, 
+			{fontFamily: "M-PLUS", backgroundColor: "white", border: "1px solid black", color: "black"},
+			{fontFamily: "Raleway", backgroundColor: "black", border: "1px solid white", color: "white"},
+			{fontFamily: "Comforter", backgroundColor: "black", border: "none", color: "cyan"},
+			{fontFamily: "Ubuntu", backgroundColor: "black", border: "1px solid magenta", color: "magenta"},
+			{fontFamily: "Patrick", backgroundColor: "black", border: "2px double lime", color: "lime"},
+			{fontFamily: "RoadRage", backgroundColor: "black", border: "none", color: "yellow"},
+			{fontFamily: "Marker", backgroundColor: "white", border: "none", color: "black"} 
+		]
+	);
 
-	const [catCount, setCatCount] = useState(0);
-
+	const [currentSkin, setCurrentSkin] = useState<ISkin>(skins[0]);
 
 	const query_objkt = `
 	query objkt($id: bigint!) {
@@ -791,6 +803,7 @@ function App() {
 	const onShowMarker = (show: boolean) => {
 		setShowWhiteboard(show);
 	};
+
 
 	const updateWaterfallChat = useCallback((message: IMessageEvent) => {
 		const { avatar, value, name } = message;
@@ -4394,7 +4407,8 @@ function App() {
 				//height: window.innerHeight - bottomPanelHeight
 				height: 1080,
 				width: 1920,
-				backgroundColor: "white"
+				backgroundColor: currentSkin.backgroundColor,
+				fontFamily: currentSkin.fontFamily
 			}}
 			onClick={onClickApp}
 		>
@@ -4493,8 +4507,9 @@ function App() {
 						actionHandler('chat', message);
 					}}
 					trailObject={trailObject}
-					player={player}
-					setPlayer={setPlayer}
+					currentSkin={currentSkin}
+					//player={player}
+					//setPlayer={setPlayer}
 				/>
 			</Route>
 
@@ -4615,6 +4630,9 @@ function App() {
 				setChecklist ={setChecklist}
 				trailObject={trailObject}
 				setTrailObject={setTrailObject}
+				skins={skins}
+				currentSkin={currentSkin}
+				setCurrentSkin={setCurrentSkin}
 			/>
 
 			{userProfile && background.type !== "marketplace" && (

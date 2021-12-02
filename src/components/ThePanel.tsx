@@ -49,9 +49,10 @@ import {SettingsPanel} from './SettingsPanel';
 import {Hints} from './Hints';
 //types
 import { ISubmit } from './NFT/OrderInput';
-import { IChatRoom, newPanelTypes, IMusicPlayer, IMetadata, IChecklist, ITrailObject } from '../types';
+import { IChatRoom, newPanelTypes, IMusicPlayer, IMetadata, IChecklist, ITrailObject, ISkin } from '../types';
 import { IGif } from '@giphy/js-types';
 import { DAppClient } from "@airgap/beacon-sdk";
+import { SkinPanel } from './SkinPanel';
 
 const dAppClient = new DAppClient({ name: "Beacon Docs" });
 let activeAccount;
@@ -136,6 +137,9 @@ interface IThePanelProps {
 	setChecklist: (message: IChecklist) => void;
 	trailObject: ITrailObject;
 	setTrailObject: (trail: ITrailObject) => void;
+	currentSkin: ISkin;
+	setCurrentSkin: (skin: ISkin) => void;
+	skins: ISkin[];
 }
 
 interface IPanel {
@@ -196,14 +200,9 @@ const panels: IPanel[] =
 		{type: '+wallet'}, 
 		{type: '+widget'}, 
 		{type: '+pet'}, 
+		{type: '+skin'}, 
 	] 
-const useStyles = makeStyles({
-	input: {
-		fontFamily: "roboto",
-		color: "black",
-	  },
 
-});
 
 const ThePanel = ({
 	//panel
@@ -282,7 +281,10 @@ const ThePanel = ({
 	setChecklist,
 	checklist,
 	trailObject,
-	setTrailObject
+	setTrailObject,
+	currentSkin,
+	setCurrentSkin,
+	skins
 }: IThePanelProps) => {
 	const [text, setText] = useState('');
 	const [isBackground, setisBackground] = useState(false);
@@ -290,6 +292,12 @@ const ThePanel = ({
 	const firebaseContext = useContext(FirebaseContext);
 	const [loading, setLoading] = useState(false);
 	const panelRef = useRef<HTMLDivElement>(null);
+	const useStyles = makeStyles({
+		input: {
+			fontFamily: currentSkin.fontFamily,
+			color: currentSkin.color,
+		  },
+	});
 	const classes = useStyles();
 	const [synced, setSynced] = useState('sync');
 	const [balance, setBalance] = useState();
@@ -517,7 +525,9 @@ const ThePanel = ({
 								<div style={{ paddingBlock: 5, paddingInline: 20 }}> 
 									<TextField
 										inputProps={{ className: classes.input }}
-										color="primary" focused
+										color="primary" 
+										focused
+										variant="outlined"
 										placeholder={"Search by " + activeSearch}
 										onChange={(e) => setText(e.target.value)}
 										onKeyPress={(e) => {
@@ -563,20 +573,20 @@ const ThePanel = ({
 
 			{activePanel === '+objkt' &&
 				<div  className="background-icon-list" >
-					<ObjktPanel sendObjkt= {sendObjkt} activeAddress= { activeAccount ? activeAccount.address : null} />
+					<ObjktPanel sendObjkt= {sendObjkt} currentSkin={currentSkin} activeAddress= { activeAccount ? activeAccount.address : null} />
 				</div>
 			}
 			
 
 			{activePanel === '+wallet' &&
 				<div  className="background-icon-list" >
-					<WalletPanel sendWallet= {sendWallet} />
+					<WalletPanel sendWallet= {sendWallet} currentSkin={currentSkin} />
 				</div>
 			}
 			
 			{activePanel === '+widget' &&
 				<div  className="background-icon-list" >
-					<WidgetPanel sendObjkt= {sendObjkt} activeAddress= {activeAccount ? activeAccount.address : null} />
+					<WidgetPanel sendObjkt= {sendObjkt} currentSkin={currentSkin} activeAddress= {activeAccount ? activeAccount.address : null} />
 				</div>
 			}
 
@@ -586,10 +596,16 @@ const ThePanel = ({
 				</div>
 			}
 
-			<div className="background-search-settings">
-				<Button className="app-btn" style={{ color: "black", fontFamily: "roboto" }} title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, ishaan, kelly, taner, eric, anthony, maria`}  onClick={async () => { window.open('https://adventurenetworks.net/#/'); }} >Adventure Networks </Button>
+			{activePanel === '+skin' &&
+				<div  className="background-icon-list" >
+					<SkinPanel skins={skins} currentSkin={currentSkin} setCurrentSkin={setCurrentSkin} />
+				</div>
+			}
 
-				<div style={{ marginRight: "auto", display: 'flex', justifyContent: 'center', alignItems: 'center', fontFamily: "roboto" }} >
+			<div className="background-search-settings">
+				<Button className="app-btn" style={{ color: currentSkin.color, fontFamily: currentSkin.fontFamily }} title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, ishaan, kelly, taner, eric, anthony, maria`}  onClick={async () => { window.open('https://adventurenetworks.net/#/'); }} >Adventure Networks </Button>
+
+				<div style={{ marginRight: "auto", display: 'flex', justifyContent: 'center', alignItems: 'center', fontFamily: currentSkin.fontFamily }} >
 
 					{//panel icon-buttons & special cases for newroom home & marketplace
 					panels.map((panel, index) => (
@@ -609,14 +625,14 @@ const ThePanel = ({
 						>
 							{panel.icon ? 
 								<img className = {activePanel === panel.type ? "button-disabled" : "" } src={ panel.icon } alt= { panel.type }  width= "30" height= "30"/> 
-								: (panel.type === "settings" ? <img className = {activePanel === panel.type ? "button-disabled" : "" } src={ avatar } alt= { panel.type }  width= "30" height= "30"/> : <div style={{fontFamily: "roboto", color: "black", fontSize: 20}}>{panel.type} </div>) 
+								: (panel.type === "settings" ? <img className = {activePanel === panel.type ? "button-disabled" : "" } src={ avatar } alt= { panel.type }  width= "30" height= "30"/> : <div style={{fontFamily: currentSkin.fontFamily, color: currentSkin.color, fontSize: 20}}>{panel.type} </div>) 
 							}
 							
 						</IconButton>
 					))}
 
 
-{				/*	<div style={{fontFamily: "roboto" }}>
+{				/*	<div style={{fontFamily: currentSkin.fontFamily }}>
 						<FormControlLabel
 							checked={checked()}
 							onChange={() => setisBackground(!isBackground)}
@@ -632,11 +648,11 @@ const ThePanel = ({
 				</div>
 
 				<div style={{ display: 'flex', width: 341 }}>
-				<Button className="app-btn" style={{ marginLeft: "auto", color: "black", fontFamily: "roboto" }} onClick={async () => { 
+				<Button className="app-btn" style={{ marginLeft: "auto", color: currentSkin.color, fontFamily: currentSkin.fontFamily }} onClick={async () => { 
 
 					}} >{balance/1000000} XTZ </Button>
 
-					<Button className="app-btn" style={{  color: "black", fontFamily: "roboto" }} title={"Hic et Nunc (h=n)"}  onClick={async () => { 
+					<Button className="app-btn" style={{  color: currentSkin.color, fontFamily: currentSkin.fontFamily }} title={"Hic et Nunc (h=n)"}  onClick={async () => { 
 						if(activeAccount){
 							if(roomId && activeAccount && roomId === activeAccount.address){
 								await firebaseContext.showTrail(activeAccount.address, !trailObject.show);
@@ -652,7 +668,7 @@ const ThePanel = ({
 							await sync();
 						}
 					}} >{synced} </Button>
-					{showUnsync && <Button className="app-btn" style={{  color: "black", fontFamily: "roboto"}} title={"Hic et Nunc (h=n)"} onClick={() => { unsync() }} >unsync </Button>}
+					{showUnsync && <Button className="app-btn" style={{  color: currentSkin.color, fontFamily: currentSkin.fontFamily}} title={"Hic et Nunc (h=n)"} onClick={() => { unsync() }} >unsync </Button>}
 				</div>
 			</div>
 		</div>
